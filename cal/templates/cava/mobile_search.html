@@ -1,0 +1,40 @@
+{% extends "cava/base-mobile.html" %}
+{% block title %}Search{%endblock%}
+{% block bodytitle %}Search{%endblock%}
+
+{% block body %}
+<center>
+<a href="{{prevlink}}">Prev</a>
+--
+<a href="{% url cal.views.redirect_to_now %}">Full</a>
+--
+<a href="{% url cal.views.mobile %}">Now</a>
+--
+<a href="{{nextlink}}">Next</a><br>
+
+<form>
+{{ form.as_p }}
+<input type="submit" value="Submit">
+</form>
+
+<table border="1">
+{% for slot in matches %}
+<tr>
+  <td><a href="{% url cal.views.mobile shift_id=slot.shift_id %}"> {{slot.shift.date}}</a> </td>
+  <td>{{slot.name}}</td>
+</tr>
+{% endfor %}
+</table><p>
+
+<a href="{{prevlink}}">Prev</a>
+--
+<a href="{% url cal.views.redirect_to_now %}">Full</a>
+--
+<a href="{% url cal.views.mobile %}">Now</a>
+--
+<a href="{{nextlink}}">Next</a>
+
+</center>
+
+
+{% endblock body %}

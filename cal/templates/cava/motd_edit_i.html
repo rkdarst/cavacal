@@ -1,0 +1,15 @@
+{% extends "cava/calbase.html" %}
+
+{% block body %}
+
+
+<form action="" method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" name="submit" value="Delete">
+<input type="submit" name="submit" value="Save">
+<input type="submit" name="submit" value="Save and return">
+</form>
+<a href="{% url cal.views.motd_edit %}">Return to MOTD page.</a>
+
+{% endblock body %}

@@ -1,0 +1,62 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA iCalendar export{% endblock %}
+
+{% block body %}
+
+This page describes the <b>export feature</b> of the CAVA calendar.
+This allows all schedule data to be exported to your own personal
+calendar, for example Google Calendar.<p>
+
+To add your own shifts to <b>Google Calendar</b>, go to your
+calendars, look at the sidebar, go to "Add" under "Other Calendars",
+select "Add by URL", and paste in the appropriate link from below.
+Google calender fetches the calendar every 30 minutes.  It sometimes
+takes several hours for changes to the official calendar to appear on
+your google calendars, but it does eventually happen.  Just be aware
+that you can't use this for last-minute changes.<p>
+
+<h2>Your own shifts</h2>
+
+To import <b>your own shifts</b>, first input your name below and hit
+"go" to preview what will be imported.  This performs a
+case-insensitive search in the calendar and returns every shift
+containing it.  Thus, use whatever name (first, last, or other) you
+appear in the calendar with.<p>
+<form>
+  {{ form.as_p }}
+  <input type="submit" value="Go">
+</form>
+<p>
+{% if matches %}
+Your calendar import URL is below.  To copy the link, right click and
+select "Copy link location" or something like that: 
+<ul>
+  <li><a href="http://{{request.META.SERVER_NAME}}/cal/ical/person/{{form.cleaned_data.q.lower}}/">http://{{request.META.SERVER_NAME}}/cal/ical/person/{{form.cleaned_data.q.lower}}/</a></li>
+</ul>
+Here is a preview of what that calendar will show (only a 25 shifts are shown):
+<table border="1">
+{% for slot in matches %}
+<tr><td>{{slot.shift.text}}</td><td>{{slot.name}}</td></tr>{% endfor %}
+</table>
+{% endif %}
+<p>
+
+The general form, to get anyone, is:
+<ul>
+<li>http://{{request.META.SERVER_NAME}}/cal/ical/person/YOUR_NAME/</li>
+</ul>
+<p>
+
+<h2>All shifts for a given rank</h2>
+
+You can use the following links to import a schedule of all shifts on
+certain ranks.  To copy the link, right-click and select "Copy link
+location" or something like that:
+<ul>
+{% for rank in ranklist %}
+<li> {{ rank.rank }}s: <a href="{% url cal.export.ical_rank rank_id=rank.rank_id %}">http://{{request.META.SERVER_NAME}}{% url cal.export.ical_rank rank_id=rank.rank_id %}</a>
+{% endfor %}
+</ul>
+
+{% endblock %}

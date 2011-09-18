@@ -1,0 +1,35 @@
+{% extends "cava/base-mobile.html" %}
+{% block title %} {{ bodytitle }} {%endblock%}
+{% block bodytitle %}{{ bodytitle }}{%endblock%}
+
+{% block body %}
+<center>
+{%if currentpage.has_previous%}<a href="{{prevlink}}">Prev</a>{%else%}Prev{% endif %}
+--
+<a href="{% url cal.views.redirect_to_now %}">Full</a>
+--
+<a href="{% url cal.views.mobile %}">Now</a>
+--
+{%if currentpage.has_next%}<a href="{{nextlink}}">Next</a>{%else%}Next{%endif%}<br>
+<table border="1">
+{% for logslot in currentpage.object_list %}
+<tr>
+  <td align="center">{{logslot.shift.date|date:"D"}} {{logslot.shift.time|upper}}</td>
+  <td align="left">{{logslot.name_new}}</td>
+  <td align="left">{{logslot.mtime|timesince}}</td>
+</tr>
+{% endfor %}
+</table><p>
+
+<a href="{% url cal.views.log %}">Full changelog</a><br>
+
+This page lists recent changes to the calendar, listing the new shift
+occupants.  This page only has changes for now to five shifts in the
+future, for more see the full changelog.  (Changes updated only every
+hour right now.)<p>
+
+<b>Formatting of this page is still being worked out, send darst
+suggestions.</b>
+
+</center>
+{% endblock body %}

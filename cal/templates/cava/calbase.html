@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>{% block title %}CAVA Calendar{% endblock %}</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="shortcut icon" href="/static/favicon.ico">
+<style type="text/css">
+{% block stylesheet %} {% include "cava/styles.css" %} {% endblock %}
+</style>
+{% block head %}{% endblock head %}
+</head>
+
+<body>
+<div class="toppanel">
+<div class="leftbox">
+<font size="+2">Columbia University EMS</font> - <a href="http://www.cuems.org">Home</a> - <a href="{% url cal.views.redirect_to_now %}">Calendar</a> <font size="1">(<a href="{% url cal.views.mobile%}">Mobile</a>)</font>
+</div>
+<div class="authbox">
+{% if user.is_authenticated %}
+Logged in as <a href="{% url cavapeople.views.userpage %}">{{ user.username }}</a>.  {{ request.usermessage|safe }}
+<a href="{% url cavapeople.views.logout %}">Log Out</a>
+{% else %}
+<a href="{% url django_openid_auth.views.login_begin %}">Log in</a>
+{% endif %}
+</div><br><br>
+{{ request.pageheader|safe }}
+{% if request.motd %}<div class="motd">{{ request.motd }}</div>{% endif %}
+</div>
+
+{% block body %}
+<span class="title">CAVA Calendar</span>
+
+{% endblock %}
+<br>
+<br>
+<center><font size="-2">{{ request.bquote }}</font></center>
+</body>
+</html>

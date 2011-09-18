@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>{% block title %} CAVA mobile site {% endblock %}</title>
+<meta name="viewport" id="viewport" content="width=device-width, user-scalable=yes">
+<link rel="apple-touch-icon" href="/static/cava_logo_icon.png">
+<style type="text/css">
+.coverage {
+    color: red;
+    font-weight: bold }
+</style>
+</head>
+<body>
+<center><b><font size="+1">{% block bodytitle %}CAVA mobile site{% endblock%}</font></b></center>
+
+{% block body %}
+{% endblock body %}
+
+{% if request.motd %}<center>{{ request.motd }}</center><p>{% endif %}
+<center><font size="-2">{{ request.bquote }}</font></center>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+{% extends "cava/calbase.html" %}
+
+{% block body %}
+
+<div class="title">Messages of the day </div><p>
+
+This lists all messages of the day (MOTDs).  The calendar will display
+all currently enabled MOTDs for which we are in the currently valid
+date range.  If a date is missing, it means "valid for all times".
+You can use the "visible" column to test what is visible.  You can't
+have links in the MOTDs right now, but I can work on that later.<p>
+
+<table border=1>
+<tr align="center" class="header">
+  <td> ID </td>
+  <td>visible?</td>
+  <td>start date</td>
+  <td>end date</td>
+  <td>enabled</td>
+  <td>message</td>
+</tr>
+{% for motd in motdList %}
+<tr>
+  <td><a href="./{{ motd.id }}">{{ motd.id }}</a></td>
+  <td>{% if motd.visible %}True{% endif %}</td>
+  <td>{{ motd.start }}</td>
+  <td>{{motd.end}}</td>
+  <td>{{ motd.enabled }}</td>
+  <td>{{ motd.message }}</td>
+</tr>
+{% endfor %}
+</table>
+<form action="" method="post">
+{% csrf_token %}
+<input type="hidden" name="add" value="True">
+<input type="submit" value="New MOTD">
+</form>
+
+{% endblock body %}

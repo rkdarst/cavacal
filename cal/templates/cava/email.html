@@ -1,0 +1,57 @@
+{% extends "cava/calbase.html" %}
+{% block title %}CAVA Calendar email interface{% endblock %}
+
+{% block body %}
+It is now: {{ now }}<p>
+
+List of all upcoming shifts:
+<table border=1 cellpadding=5>
+<tr class="header">
+  <td>Shift</td>
+  <td>Time-Until</td>
+  <td>Rank</td>
+  <td>Needs Sending?</td>
+  <td>Name</td>
+  <td>Members</td>
+</tr>
+{% for slot in slots %}
+  <tr>
+  <td class="sidebar">{{ slot.shift.text }}</td>
+  <td>{{ slot.shift.timeuntil }}</td>
+  <td>{{ slot.rank.rank }}</td>
+  <td>{{ slot.needssending }}</td>
+  <td>{{ slot.name }}</td>
+  <td>{% for member in slot.members %}{{ member.name }}, {% endfor %}</td>
+</tr>
+{% endfor %}
+</table><p>
+
+List of emails to possibly send:
+<table border=1 cellpadding=5>
+<tr class="header">
+  <td>Shift</td>
+  <td>Rank</td>
+  <td>TimeUntil</td>
+  <td>NeedsSending</td>
+  <td>Sent</td>
+  <td>SentExact</td>
+  <td>DoSend</td>
+  <td>Name</td>
+  <td>MemberName</td>
+</tr>
+{% for email in emails %}
+  <tr>
+  <td class="sidebar">{{ email.slot.shift.text }}</td>
+  <td>{{ email.slot.rank.rank }}</td>
+  <td>{{ email.slot.interval }}</td>
+  <td>{{ email.slot.needssending }}</td>
+  <td>{{ email.sent }}</td>
+  <td>{{ email.sent_exact }}</td>
+  <td>{{ email.do_send }}</td>
+  <td>{{ email.slot.name }}</td>
+  <td>{{ email.member.name }}</td>
+</tr>
+{% endfor %}
+</table><p>
+
+{% endblock body %}

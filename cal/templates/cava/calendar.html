@@ -1,0 +1,49 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA: {{ year }} {{ monthstr }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/shadowbox/shadowbox.css">
+<script type="text/javascript" src="/static/shadowbox/shadowbox.js"></script>
+<script type="text/javascript">
+Shadowbox.init({
+    initialWidth: 350,
+    initialHeight: 150
+});
+</script>
+{% endblock head %}
+
+
+{% block body %}
+
+<center>
+
+{{ request.month_bar|safe }}<br>
+{{ request.rank_bar|safe }}<br>
+{{ request.edit_bar_if_permission|safe }}
+</center>
+
+<br>
+{% block calendar %}
+
+<center>
+<table border=1 cellpadding=8 cellspacing=0>
+  <tr class="header">
+    <td>Date</td>{% for cell in table_header %}
+    {{ cell|safe }}{% endfor %}
+  </tr>{% for row in table %}
+  {% if row.empty %}
+  <tr cellpadding=5><td></td></tr>{% else %}
+  <tr>
+  <td class="sidebar"><a name="{{row.day}}">{{row.month}} {{row.day}} ({{row.weekday}})</a></td>{% for cell in row.row %}
+    {{ cell|safe }}{% endfor%}
+  </tr>{% endif %}
+{% if row.today and request.motd %}
+<tr><td colspan="10"><center>{{request.motd}}</center></td></tr>
+{% endif %}
+{% endfor %}
+</table>
+</center>
+
+{% endblock calendar %}
+{% endblock %}

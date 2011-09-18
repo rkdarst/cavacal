@@ -1,0 +1,36 @@
+.toppanel {
+    top: 0;
+    background: #99abd5;
+    padding: 10px;
+    border-radius: 10px; }
+.header {
+    background: #6a7eab; }
+.sidebar {
+    background: #6a7eab; }
+.weekend {
+    background: #99abd5; }
+.notthismonth {
+    background: #5c6780; }
+.today {
+    //background: #DBE5F1;
+    //color: red;
+    border-width: 3px;
+    border-color: red;
+}
+td:hover {
+    background: #7C96D2; }
+.authbox {
+    float: right; }
+.leftbox {
+    float: left; }
+.title {
+    font-size: 200%;
+    text-align: center; }
+.motd {
+    text-align: center; }
+.coverage {
+    color: red;
+    font-weight: bold; }
+.elnk {
+    color: black;
+}

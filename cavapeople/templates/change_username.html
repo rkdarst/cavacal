@@ -1,0 +1,26 @@
+{% extends "calbase.html" %}
+
+{% block body %}
+<p>
+{% if error %}
+Error: {{error}}<p>
+<a href="{% url cavapeople.views.userpage%}">Return to your page</a>
+{% endif %}
+
+{% if successful %}
+Your username has been changed to "{{request.user.username}}".  You may
+now return to <a href="http://cava.zgib.net">the calendar</a>.
+{% endif%}
+
+{% if form %}
+You have a new user account named "openiduser*", and you should pick a
+better username now.  You can use any letters, digits, and the characters
+".-@+", and it must be between five and 30 characters long.  Be
+careful, you can only change your username once, after this you'll
+have to ask an administrator.
+<form action="." method="POST">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Submit">
+</form>
+{% endif %}
+{% endblock body %}

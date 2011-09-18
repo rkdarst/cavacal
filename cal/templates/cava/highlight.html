@@ -1,0 +1,24 @@
+{% extends "cava/calbase.html"%}
+
+{% block title%}Name highlighting{%endblock title%}
+
+{% block body%}
+<div class="title">Name highlighting</div>
+
+<form method="post">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Save">
+</form><p>
+
+This form will set a name (presumably yours) to highlight in the
+schedule.  This can let you scan quickly and see in <b>bold</b> when
+you are on.<p>
+
+Right now, for privacy reasons, the cookie expires after two months,
+so you must re-set the highlight after that time.  This will be
+changed later if this feature is useful -- highlighting will probably
+be integrated in user profiles.<p>
+
+If you have any questions or suggestions, feel free to contact darst.
+
+{% endblock body%}

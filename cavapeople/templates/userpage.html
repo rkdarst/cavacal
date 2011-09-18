@@ -1,0 +1,18 @@
+{% extends "calbase.html" %}
+
+{% block title %}CAVA user: {{user.username}}{% endblock title %}
+
+{% block body %} This page lists various information about your user
+({{user.username}}) in the system.  This page may not look pretty,
+but it's not supposed to.<p>
+
+{% if can_change_username %}
+You can change your username by going to <a href="{%url cavapeople.views.change_username%}">this page</a><p>
+{% endif%}
+
+
+You are in these groups: {{user.groups.values}}<p>
+
+You have these permissions: {{ perms.items }}
+
+{% endblock body%}

@@ -1,0 +1,22 @@
+{% extends "cava/calendar.html" %}
+{% block calendar %}
+<center>
+<table border=1 cellpadding=5 cellspacing=0>
+  <tr class="header">
+    <td>Monday</td>
+    <td>Tuesday</td>
+    <td>Wednesday</td>
+    <td>Thursay</td>
+    <td>Friday</td>
+    <td>Saturay</td>
+    <td>Sunday</td>
+  </tr>
+  {% for row in table %}
+  <tr>{% for day in row %}
+    {{ day|safe }}{% endfor %}
+  </tr>
+{% endfor %}
+</table>
+</center>
+
+{% endblock calendar %}

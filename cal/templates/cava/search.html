@@ -1,0 +1,44 @@
+{% extends "cava/calbase.html" %}
+{% block title %}
+CAVA calendar: Search: {{ searchstr }}
+{% endblock %}
+
+
+{% block body %}
+<div class="title">Search</div>
+<p>
+This is a simple case-intensive matching search, no wildcards or
+regular expressions.  This is not guarenteed to find everything
+if you are in the calendar under many different creative
+spellings. <p>
+
+<form action=".">
+<input type="text" name="q" >
+<input type="submit" value="Search">
+</form>
+<a href="/cal">Back to main</a>
+
+
+{% if searchstr %} Searching for: {{ searchstr }} {% endif %} <p>
+<table border=1 cellpadding=5>
+<tr class="header">
+  <td></td>
+  <td>ShiftID</td>
+  <td>Shift</td>
+  <td>Year</td>
+  <td>Rank</td>
+  <td>Name</td>
+</tr>
+{% for slot in matches %}
+<tr>
+  <td class="sidebar">{{ forloop.counter }}</td>
+  <td class="sidebar">{{ slot.shift_id }}</td>
+  <td{%if slot.shift.is_weekend%} class="weekend"{%endif%}>{{ slot.shift.text }}</td>
+  <td>{{ slot.shift.date.year }}</td>
+  <td>{{ slot.rank }}</td>
+  <td>{{ slot.name }}</td>
+</tr>
+{% endfor %}
+</table>
+<a href="/cal">Back to main</a>
+{% endblock body %}

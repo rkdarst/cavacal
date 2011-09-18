@@ -1,0 +1,23 @@
+{% extends "cava/calendar.html" %}
+{% block calendar %}
+{{ form.errors }}
+<form action="." method="POST">{% csrf_token %}
+<table border=1 cellpadding=8 cellspacing=0 width="100%%">
+  <tr class="header">
+    <td>Monday</td>
+    <td>Tuesday</td>
+    <td>Wednesday</td>
+    <td>Thursay</td>
+    <td>Friday</td>
+    <td>Saturay</td>
+    <td>Sunday</td>
+  </tr>
+  {% for row in table %}
+  <tr>{% for day in row %}
+    {{ day|safe }}{% endfor %}
+  <tr>
+{% endfor %}
+</table>
+<br><center><input type="submit" value="Submit"></center>
+</form>
+{% endblock calendar %}

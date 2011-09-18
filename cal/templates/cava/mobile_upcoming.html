@@ -1,0 +1,35 @@
+{% extends "cava/base-mobile.html" %}
+{% block title %} {{title}} {%endblock%}
+{% block bodytitle %}Upcoming {{ shifts|length }} shifts{%endblock%}
+
+{% block body %}
+<center>
+<a href="{{prevlink}}">Prev</a>
+--
+<a href="{% url cal.views.redirect_to_now %}">Full</a>
+--
+<a href="{% url cal.views.mobile %}">Now</a>
+--
+<a href="{{nextlink}}">Next</a><br>
+
+{% for shiftdata in shifts %}
+<b><font size="+1">{{ shiftdata.shifttitle }}</font></b><br>
+<table border="1">
+{% for name in shiftdata.names %}
+<tr><td align="center">{{name|safe}}</td></tr>
+{% endfor %}
+</table><p>
+{% endfor %}
+
+<a href="{{prevlink}}">Prev</a>
+--
+<a href="{% url cal.views.redirect_to_now %}">Full</a>
+--
+<a href="{% url cal.views.mobile %}">Now</a>
+--
+<a href="{{nextlink}}">Next</a>
+
+</center>
+
+
+{% endblock body %}

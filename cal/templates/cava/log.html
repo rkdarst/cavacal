@@ -1,0 +1,29 @@
+{% extends "cava/calbase.html" %}
+
+{% block body %}
+<h1>All changes within the last 168 hours</h1>
+
+<a href="/cal/">Return to main</a>
+
+<table border=1>
+<tr class="header">
+  <td>Mod Time</td>
+  <td>Shift</td>
+  <td>Rank</td>
+  <td>Changed by</td>
+  <td>From</td>
+  <td>To</td>
+{% for slot in slots %}
+<tr>
+  <td class="sidebar">{{slot.prettymtime}}</td>
+  <td {% if slot.shift.is_weekend%} class="weekend"{%endif%}>{{ slot.shift.text }}</td>
+  <td>{{ slot.rank.rank }}</td>
+  <td>{{ slot.prettychanger }}</td>
+  <td>{{ slot.name_old_if_different }}</td>
+  <td>{{ slot.name_new }}</td>
+<tr>
+{% endfor %}
+</tr>
+</table>
+
+{% endblock body %}
