@@ -2,6 +2,7 @@
 {% block calendar %}
 {{ form.errors }}
 <form action="." method="POST">{% csrf_token %}
+<input type="hidden" name="rank_id" value="{{ rank_id }}">
 <table border=1 cellpadding=8 cellspacing=0 width="100%%">
   <tr class="header">
     <td>Monday</td>

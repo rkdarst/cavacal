@@ -66,8 +66,8 @@ class NavBarMiddleware(object):
         if view not in calendar_views:
             view = views.month
 
-        if 'rank_id' in request.GET:
-            query_string = '?rank_id=%s'%request.GET['rank_id']
+        if 'rank_id' in request.REQUEST:
+            query_string = '?rank_id=%s'%request.REQUEST['rank_id']
         else:
             query_string = ''
         for i in range(-3, 4):
@@ -100,8 +100,8 @@ class NavBarMiddleware(object):
             year = int(kwargs['year'])
             date = date.replace(year=year)
 
-        if 'rank_id' in request.GET:
-            current_rank = int(request.GET['rank_id'])
+        if 'rank_id' in request.REQUEST:
+            current_rank = int(request.REQUEST['rank_id'])
         elif to_view == views.month or to_view == views.month_edit:
             current_rank = -1
         else:
