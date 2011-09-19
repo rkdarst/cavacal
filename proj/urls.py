@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     (r'^logout/', 'cavapeople.views.logout',
                   {'next_page': '/'}),
     (r'^about/', direct_to_template,
-                  {'template': 'about.html'}, 'cal-about'),
+                  {'template': 'cava/about.html'}, 'cal-about'),
 
 #    (r'^accounts/', include('socialauth.urls')),
     (r'^openid/login/', 'django_openid_auth.views.login_begin',

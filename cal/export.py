@@ -92,7 +92,7 @@ def ical(request):
                     regex=regex)[:25]
     else:
         form = SearchForm()
-    t = django.template.loader.get_template("ical.html")
+    t = django.template.loader.get_template("cava/ical.html")
     c = RequestContext(request, locals())
     body = t.render(c)
     return HttpResponse(body)
