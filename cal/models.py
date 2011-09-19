@@ -116,7 +116,7 @@ class Schedule(object):
         if len(slot) == 0:  return ''
         else:               return slot[0].name
 
-    def __setitem__(self, key, value, user=None):
+    def __setitem__(self, key, value, user=None, push=True):
         shift, rank = key
         shift_id = int(shift)
         if isinstance(rank, int):
@@ -147,16 +147,18 @@ class Schedule(object):
                 'rank':rank.rank_id,
                 'name':value}
 
-        #cava.scrape.pushchange(shift.date, shift.time, rank.rank_id, value)
-        # CGI running does not take nicely to threading.
-        #thread.start_new_thread(cava.scrape.pushchange, (shift.date,
-        #shift.time, rank.rank_id, value))
-        # Django does *not* like being forked.  Figure out why.  I think it
-        # has to do with trapping SystemExit and not letting it
-        #if os.fork() == 0:
-        #    sys.stdout = sys.stderr = open('/srv/cava/push.log', 'a')
-        #    cava.scrape.pushchange(shift.date, shift.time, rank.rank_id,value)
-        #    os._exit()
+        if push:
+            cava.scrape.pushchange(shift.date, shift.time, rank.rank_id,value)
+            # CGI running does not take nicely to threading.
+            #thread.start_new_thread(cava.scrape.pushchange, (shift.date,
+            #shift.time, rank.rank_id, value))
+            # Django does *not* like being forked.  Figure out why.  I think it
+            # has to do with trapping SystemExit and not letting it
+            #if os.fork() == 0:
+            #    sys.stdout = sys.stderr = open('/srv/cava/push.log', 'a')
+            #    cava.scrape.pushchange(shift.date, shift.time,
+            #                           rank.rank_id,value)
+            #    os._exit()
 
     setslot = __setitem__
     def has_key(self, key):

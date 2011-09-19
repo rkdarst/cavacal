@@ -91,7 +91,8 @@ def setslot(request, shift_id, rank_id):
         if form.is_valid():
             schedule.setslot((shift_id, rank_id),
                              form.cleaned_data['name'],
-                             request.user)
+                             user=request.user
+                             )
             #if form.cleaned_data['nextto']:
             #    return HttpResponseRedirect(form.cleaned_data['nextto'])
             return redirect_to_now(request, today=Shift(shift_id).date)
