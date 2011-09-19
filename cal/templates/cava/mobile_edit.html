@@ -4,8 +4,11 @@
 
 {% block body %}
 <center>
+<form method="POST"> {% csrf_token %}
 <table>
 {{ form.as_table }}
 </table>
+<input type="submit" value="Submit">
+</form>
 </center>
 {% endblock body %}

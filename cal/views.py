@@ -354,10 +354,11 @@ def month_edit(request, year, month):
             for name, shift in shifts:
                 new = form.clean()[name]
                 initial = form.fields[name].initial
-                if new != initial:
-                    schedule.setslot((shift, rank),
-                                     new,
-                                     request.user)
+                if new == initial:
+                    continue
+                schedule.setslot((shift, rank),
+                                 new,
+                                 request.user)
 #        from fitz import interactnow
             return redirect_to_now(request)
     else:
@@ -474,6 +475,7 @@ for rank in ranks:
     #rank.rank_id
     sef_mapping[shortRankName] = rank
 ShiftEditForm = type("ShiftEditForm", (forms.Form, ), sef_d)
+del rank, f, shortRankName
 
 def mobile_edit(request, shift_id=None):
     if shift_id is None:
@@ -487,8 +489,22 @@ def mobile_edit(request, shift_id=None):
     title = shifttitle = "Editing %s %s"%(shift.date.strftime("%Y, %b %d"),
                                           shift.time)
 
-    initial = dict((k, schedule[shift_id, v]) for (k,v) in sef_mapping.items())
-    form = ShiftEditForm(initial=initial)
+    if request.method == "POST":
+        form = ShiftEditForm(request.POST)
+        if form.is_valid():
+            for fieldname, rank in sef_mapping.items():
+                new = form.clean()[fieldname]
+                if new == schedule[shift_id, rank]:
+                    continue
+                schedule.setslot((shift, rank),
+                                 new,
+                                 request.user)
+            return HttpResponseRedirect(reverse(mobile,
+                                                kwargs={'shift_id':shift_id}))
+    else:
+        initial = dict((fieldname, schedule[shift_id, rnk])
+                       for (fieldname, rnk) in sef_mapping.items())
+        form = ShiftEditForm(initial=initial)
 
     t = django.template.loader.get_template("cava/mobile_edit.html")
     body = t.render(RequestContext(request, locals()))
