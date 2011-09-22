@@ -77,7 +77,7 @@ def redirect_to_now(request, today=None):
 
 class SetSlotForm(forms.Form):
     name = forms.CharField(max_length=256, required=False)
-    nextto = forms.HiddenInput()
+    next = forms.CharField(widget=forms.HiddenInput(), required=False)
 
 @permission_required('cal.can_edit_calendar')
 def setslot(request, shift_id, rank_id):
@@ -93,13 +93,13 @@ def setslot(request, shift_id, rank_id):
                              form.cleaned_data['name'],
                              user=request.user
                              )
-            #if form.cleaned_data['nextto']:
-            #    return HttpResponseRedirect(form.cleaned_data['nextto'])
+            if form.cleaned_data['next']:
+                return HttpResponseRedirect(form.cleaned_data['next'])
             return redirect_to_now(request, today=Shift(shift_id).date)
 #        print form.name_of_field.errors
     else:
         form = SetSlotForm(initial={'name':schedule[shift_id, rank_id],
-                               'nextto': request.META.get('HTTP_REFERER')})
+                               'next': request.META.get('HTTP_REFERER')})
 
     t = django.template.loader.get_template("cava/setslot.html")
     body = t.render(RequestContext(request, locals()))
