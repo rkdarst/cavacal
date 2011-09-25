@@ -147,6 +147,7 @@ class Schedule(object):
                 'rank':rank.rank_id,
                 'name':value}
 
+        #push = False  # This prevents pushing changes upstream
         if push:
             cava.scrape.pushchange(shift.date, shift.time, rank.rank_id,value)
             # CGI running does not take nicely to threading.
