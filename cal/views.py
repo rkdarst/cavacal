@@ -5,11 +5,11 @@ import textwrap
 import os
 import re
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import Context, RequestContext, Template
 import django.template
 import django.core.mail as dj_mail
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve
 from django.shortcuts import redirect
 from django import forms
 from django.contrib.auth.decorators import permission_required
@@ -28,7 +28,7 @@ from cava.util import Shift
 
 def coverage_re_replace(match):
     return '<span class="coverage">%s</span>'%match.group(0)
-coverage_re = re.compile('\?\?\?+|coverage',re.I)
+coverage_re = re.compile('\?+|coverage|help',re.I)
 time_re = re.compile('(([0-9:])|((?<!<)/))+')
 #hide_re = re.compile(r'\b(richard|harstrick)\b', re.I)
 def highlight_names(name, highlight=None, view=None):
@@ -60,7 +60,7 @@ ifmodified_decorator = django.views.decorators.http.condition(
 #ifmodified_decorator = lambda x: x
 
 
-def redirect_to_now(request, today=None):
+def redirect_to_now(request, today=None, rank_id=None):
     if today is None:
         today = datetime.date.today()
     if today.day > 4:
@@ -68,12 +68,19 @@ def redirect_to_now(request, today=None):
         bookmark = '#%02d'%day
     else:
         bookmark = ""
-    query = request.META.get('QUERY_STRING')
-    if query:
-        query = '?'+query
+    querylist = [ ]
+    if rank_id is not None:
+        querylist.append('rank_id=%d'%rank_id)
+    q = request.META.get('QUERY_STRING')
+    if q:
+        querylist.append(q)
+    if len(querylist) > 0:
+        query = '?'+"&".join(querylist)
+    else:
+        query = ""
     kwargs = dict(year=today.year, month="%02d"%today.month)
     return HttpResponseRedirect(
-        reverse(month, kwargs=kwargs)+bookmark+query)
+        reverse(month, kwargs=kwargs)+query+bookmark)
 
 class SetSlotForm(forms.Form):
     name = forms.CharField(max_length=256, required=False)
@@ -94,7 +101,20 @@ def setslot(request, shift_id, rank_id):
                              user=request.user
                              )
             if form.cleaned_data['next']:
-                return HttpResponseRedirect(form.cleaned_data['next'])
+                next = form.cleaned_data['next']
+                #try:
+                #    nextview = resolve(next)
+                #except Http404:
+                #    nextview = None
+                #if nextview:
+                #    if nextview.func == month and 'rank_id' not in next:
+                #        next += '#%02d'%shift_id.date.day
+                #else:
+                #    next += '#'+next
+                if 'rank_id' not in next:
+                    return redirect_to_now(request, today=Shift(shift_id).date)
+                return HttpResponseRedirect(next)
+
             return redirect_to_now(request, today=Shift(shift_id).date)
 #        print form.name_of_field.errors
     else:
@@ -361,7 +381,9 @@ def month_edit(request, year, month):
                                  new,
                                  request.user)
 #        from fitz import interactnow
-            return redirect_to_now(request)
+            return redirect_to_now(request,
+                                   today=date,
+                                   rank_id=rank_id)
     else:
         form = MonthEditForm()
 
