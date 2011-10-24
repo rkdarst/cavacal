@@ -136,7 +136,7 @@ class Schedule(object):
             slot.changed_by = user
         elif hasattr(self, "user"):
             slot.changed_by = self.user
-        #slot.user = False  # This prevents logging
+        #slot.changed_by = False  # This prevents logging
         slot.save()
 
         # Push to upstream  - we have already returned above if there
