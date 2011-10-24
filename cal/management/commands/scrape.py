@@ -19,24 +19,34 @@ class Command(BaseCommand):
                     action='store_true',
                     default=False,
                     help='Get only changes in the next few days.'),
+        optparse.make_option('--first-date',
+                    action='store',
+                    default=None,
+                    help='Use this as the first date to grab.'),
         )
 
     def handle(self, *args, **kwargs):
+        """Old method, web scraping"""
         verbosity = int(kwargs['verbosity'])
         if verbosity >= 2:
             print kwargs
-        
+
         #userpass = open("/home/richard/.private/cavapwd").read().split()
         scraper = cava.scrape.Scraper() #*userpass)
-        
+
         zgibSch = cal.models.Schedule()
         zgibSch.user = "websync"
         #zgibSch.user = False  # makes it not log
         today = datetime.date.today()
-        firstDate = today - datetime.timedelta(days=1)
+        if kwargs['first_date'] is not None:
+            firstDate = datetime.datetime.strptime(kwargs['first_date'],
+                                                   "%Y-%m-%d")
+            firstDate = firstDate.date()
+        else:
+            firstDate = today - datetime.timedelta(days=1)
         firstDate = firstDate.replace(day=1)
 
-        
+
         # Get this month and next month
         firstShift = Shift(date=firstDate, time='am')
         lastShift=Shift(date=increment_month(today, increment=5),
@@ -44,7 +54,7 @@ class Command(BaseCommand):
         if kwargs['fast']:
             if verbosity >= 2:
                 print "--fast enabled"
-            if (today + datetime.timedelta(days=2)).month == today.month:
+            if (today + datetime.timedelta(days=5)).month == today.month:
                 # If next month is more than two days away, then only
                 # grab this month.
                 lastShift=Shift(
@@ -80,4 +90,45 @@ class Command(BaseCommand):
 
         if verbosity >= 1 and numberChanged > 0:
             print "total changed:", numberChanged
-        sys.exit(0)
+
+
+    def handle(self, *args, **kwargs):
+        """New method, web scraping"""
+        verbosity = int(kwargs['verbosity'])
+        if verbosity >= 2:
+            print kwargs
+
+        zgibSch = cal.models.Schedule()
+        zgibSch.user = "websync"
+        #zgibSch.user = False  # makes it not log
+
+        today = datetime.date.today()
+        if kwargs['first_date'] is not None:
+            firstDate = datetime.datetime.strptime(kwargs['first_date'],
+                                                   "%Y-%m-%d")
+            firstDate = firstDate.date()
+        else:
+            firstDate = today - datetime.timedelta(days=30)
+
+        firstShift = Shift(date=firstDate, time='am')
+
+        if verbosity >= 2:
+            print firstShift, lastShift
+        numberChanged = 0
+
+        for shift, rank_id, name in \
+                          cava.scrape.loadFromWeb2(first_date=firstShift.date):
+            # Do not re-save if it is already the same
+            if name == zgibSch[shift.shift_id, rank_id]:
+                continue
+            if verbosity >= 1:
+                print "*", shift, \
+                    ("%-7s"%cal.models.Rank.objects.get(rank_id=rank_id).rank
+                     )[:7], \
+                    "%-30s"%name, "(was: %s)"%\
+                    zgibSch[shift.shift_id, rank_id]
+            zgibSch[shift, rank_id] = name
+            numberChanged += 1
+
+        if verbosity >= 1 and numberChanged > 0:
+            print "total changed:", numberChanged

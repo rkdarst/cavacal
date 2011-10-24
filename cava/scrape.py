@@ -128,6 +128,25 @@ def loadFromWeb(schedule, scraper, year=None, month=None):
         for day, time, shift in scraper.getmonth(year, month, rank):
             schedule[util.Shift(date=(year,month,day), time=time), rank]= shift
 
+def loadFromWeb2(first_date=datetime.datetime(2011,9,1), last_date=None):
+    """This loads from the web using my sync gateway (more efficient, faster)
+    """
+    first_date = first_date.strftime('%Y-%m-%y')
+
+    url = 'http://www.cuems.org/cal/raw.py?first_date=%s'%first_date
+    if last_date:
+        last_date  = last_date.strftime('%Y-%m-%y')
+        url += '&last_date='+last_date
+
+    import urllib
+    for line in urllib.urlopen(url):
+        if line.startswith('#'):
+            continue
+        d, xm, rank_id, name = line.split('\t')
+        name = name.strip()
+        yield util.Shift(date=datetime.datetime.strptime(d, '%Y-%m-%d').date(),
+                         time=xm), int(rank_id), name
+
 def pushchange(date, time, rank, name):
     params = {'schedinfo[date]':date.strftime('%Y-%m-%d'),
               'schedinfo[shift]':time.upper(),
