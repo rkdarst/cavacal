@@ -148,6 +148,7 @@ def loadFromWeb2(first_date=datetime.datetime(2011,9,1), last_date=None):
                          time=xm), int(rank_id), name
 
 def pushchange(date, time, rank, name):
+    # http://www.cuems.org/cal/index.php?edit=1:2011-09-02:PM
     params = {'schedinfo[date]':date.strftime('%Y-%m-%d'),
               'schedinfo[shift]':time.upper(),
               'schedinfo[rank]':int(rank),
