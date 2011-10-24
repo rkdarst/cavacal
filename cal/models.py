@@ -40,8 +40,9 @@ class Slot(models.Model):
         self._original_name = self.name
 
     def save(self, *args, **kwargs):
-        # Save transaction log
+        # Save the name
         super(Slot, self).save(*args, **kwargs)
+        # Save transaction log
         # Don't save if changed_by is false
         if self.changed_by == False:
             return
@@ -117,6 +118,9 @@ class Schedule(object):
         else:               return slot[0].name
 
     def __setitem__(self, key, value, user=None, push=True):
+        # Remove HTML breaking space (added for pretty printing.)
+        value = value.replace(u'\u200b', '')
+        #
         shift, rank = key
         shift_id = int(shift)
         if isinstance(rank, int):
