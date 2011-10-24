@@ -234,6 +234,49 @@ def increment_month(date, increment=1):
     return datetime.date(year, month, 1)
 
 
+bracket_re = re.compile(r'\[[^]]*\]')
+paren_re   = re.compile(r'\([^)]*\)')
+split_re   = re.compile(r'/+')
+time_re    = re.compile(r'(\d{1,2}):?(\d{2})$')
+def _maketime(string):
+    m = time_re.match(string)
+    if not m:
+        return None
+    return datetime.time(int(m.group(1)), int(m.group(2)))
+def _getsecs(t):
+    return t.hours*3600 + t.minutes*60 + t.seconds + t.microseconds/1e6
+def _getrealtime(start, t):
+    """Convert a shift and a time into the actual time it represents."""
+    newt = start.replace(hours=t.hours,
+                         minutes=t.minutes,
+                         seconds=t.seconds)
+    dt = abs(_getsecs(shift.start().time()) - getsecs(t))
+    if dt > 12*3600:
+        # We need to wrap around
+        if start.hour < 12:
+            # Morning time, wrap around to previous night
+            newt -= datetime.timedelta(days=1)
+        else:
+            pass
+def parseslot(shift, slot):
+    slot = slot.strip()
+    slot = bracket_re.sub('', slot)
+    slot = paren_re.sub('', slot)
+    parts = split_re.split(slot)
+
+    curtime = None
+    name = None
+
+    for part in parts:
+        t = matchtime(part)
+        if t is not None:
+            # Handle a time
+            pass
+        # Handle a name
+        pass
+
+
+
 #def parseShift(text, xm='am'):
 #    text = re.sub('\([^)]*\)', '', text)
 #    print re.split('[^a-z0-9:-]*', text, re.I)
