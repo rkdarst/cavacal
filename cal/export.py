@@ -88,8 +88,12 @@ def ical(request):
     form = SearchForm(request.GET)
     if form.is_valid():
         matches = models.slot_search(pattern=form.cleaned_data['q'],
-                    shift_id__gt=cava.util.get_current_shift().shift_id,
-                    regex=regex)[:25]
+                    shift_id__gte=cava.util.get_current_shift().shift_id,
+                    regex=regex)
+        matches.order_by('-shift_id')
+        matches = matches[:25]
+        #matches = list(matches)
+        #matches.sort(key=lambda s: -s.shift_id)
     else:
         form = SearchForm()
     t = django.template.loader.get_template("cava/ical.html")
@@ -108,6 +112,8 @@ def ical_search(request, name):
                                  shift_id__gt=firstShift.shift_id,
                                  regex=regex)
     matches.order_by('-shift_id')
+    #matches = list(matches)
+    #matches.sort(key=lambda s: s.shift_id)
     return HttpResponseIcal(matches, name='CAVA - %s'%name)
 
 @ifmodified_decorator
