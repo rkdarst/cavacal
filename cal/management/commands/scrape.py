@@ -102,6 +102,7 @@ class Command(BaseCommand):
         zgibSch.user = "websync"
         #zgibSch.user = False  # makes it not log
 
+        # Establish the first shift
         today = datetime.date.today()
         if kwargs['first_date'] is not None:
             firstDate = datetime.datetime.strptime(kwargs['first_date'],
@@ -112,23 +113,55 @@ class Command(BaseCommand):
 
         firstShift = Shift(date=firstDate, time='am')
 
+        # Establish the last shift
+        lastShift=Shift(date=datetime.date.today()+datetime.timedelta(days=90),
+                        time='pm')
+
+
         if verbosity >= 2:
             print firstShift, lastShift
         numberChanged = 0
 
-        for shift, rank_id, name in \
-                          cava.scrape.loadFromWeb2(first_date=firstShift.date):
-            # Do not re-save if it is already the same
-            if name == zgibSch[shift.shift_id, rank_id]:
-                continue
-            if verbosity >= 1:
-                print "*", shift, \
-                    ("%-7s"%cal.models.Rank.objects.get(rank_id=rank_id).rank
-                     )[:7], \
-                    "%-30s"%name, "(was: %s)"%\
-                    zgibSch[shift.shift_id, rank_id]
-            zgibSch[shift, rank_id] = name
-            numberChanged += 1
+        ScrapedSchedule = cava.scrape.Schedule2(first_date=firstShift.date)
+        shift = firstShift
+        # We still want to iterate through dates, otherwise we'll miss
+        # dates which are newly blanked.
+        for i in range(5000):
+            if verbosity >= 2:
+                print shift
+            for rank in cal.views.ranks:
+                rank_id = rank.rank_id
+                try:
+                    slot = ScrapedSchedule[shift, rank_id]
+                except KeyError:
+                    slot = ''
+                # Do not re-save if it is already the same
+                if slot == zgibSch[shift.shift_id, rank]:
+                    continue
+                if verbosity >= 1:
+                    print "*", shift, rank, slot, "     (was: %s)"%\
+                                                  zgibSch[shift.shift_id, rank]
+                zgibSch.setslot((shift, rank), slot, push=False)
+                numberChanged += 1
+            shift = shift.next
+            if shift.shift_id >= lastShift.shift_id:
+                break
 
         if verbosity >= 1 and numberChanged > 0:
             print "total changed:", numberChanged
+
+
+
+        #for shift, rank_id, name in \
+        #                  cava.scrape.loadFromWeb2(first_date=firstShift.date):
+        #    # Do not re-save if it is already the same
+        #    if name == zgibSch[shift.shift_id, rank_id]:
+        #        continue
+        #    if verbosity >= 1:
+        #        print "*", shift, \
+        #            ("%-7s"%cal.models.Rank.objects.get(rank_id=rank_id).rank
+        #             )[:7], \
+        #            "%-30s"%name, "(was: %s)"%\
+        #            zgibSch[shift.shift_id, rank_id]
+        #    zgibSch[shift, rank_id] = name
+        #    numberChanged += 1

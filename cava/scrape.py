@@ -72,9 +72,9 @@ class Scraper(object):
     def load(self, year, month):
         loadFromWeb(self.schedule, self, year=year, month=month)
 
-    def getmonth(self, year, month, rank):
-        url = 'http://www.cuems.org/cal/index.php?date=%(year)04d-%(month)02d&rank=%(rank)d'%{'month':month, 'year':year, 'rank':rank}
-        #print "getting:", year, month, rank
+    def getmonth(self, year, month, rank_id):
+        url = 'http://www.cuems.org/cal/index.php?date=%(year)04d-%(month)02d&rank=%(rank_id)d'%{'month':month, 'year':year, 'rank_id':rank_id}
+        #print "getting:", year, month, rank_id
         if self.br:
             r = self.br.open(url)
             data = r.read()
@@ -124,9 +124,50 @@ def loadFromWeb(schedule, scraper, year=None, month=None):
         year += yearDelta
         month += 1
     # blah
-    for rank in (1, 2, 3, 4):
-        for day, time, shift in scraper.getmonth(year, month, rank):
-            schedule[util.Shift(date=(year,month,day), time=time), rank]= shift
+    for rank_id in (1, 2, 3, 4):
+        for day, time, shift in scraper.getmonth(year, month, rank_id):
+            schedule[util.Shift(date=(year,month,day),time=time),rank_id]=shift
+
+class Schedule2(object):
+    """Dummy schedule to set and store items.
+
+    Uses the more efficient sync-gateway.
+    """
+    def __init__(self,
+                 first_date=datetime.datetime(2011,9,1),
+                 last_date=None):
+        self.first_date = first_date
+        self.last_date  = last_date
+        self._data = { }
+        for shift, rank_id, name in \
+                          loadFromWeb2(first_date=first_date,
+                                       last_date=last_date):
+            self._data[shift, rank_id] = name
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+    def __getitem__(self, key):
+        """
+        KeyError - not set on the upstream calendar.
+        ValueError - domain error: trying to get a slot which wasn't
+                     included in scraping.
+        """
+        shift, rank_id = key
+        if shift.date < self.first_date:
+            raise ValueError("Date is too early")
+        if self.last_date is not None and shift.date > self.last_date:
+            raise ValueError("Date is too late")
+        return self._data[key] # KeyError if not here.
+
+    def printall(self):
+        keys = self._data.keys()
+        keys.sort(key=lambda x: (x[0].shift_id,x[1]))
+        #keys = set((y, m, d, h) for y,m,d,h,r in keys)
+        #keys = list(keys)
+        #keys.sort()
+        for key in keys:
+            print key[0], key[1], self[key]
+
 
 def loadFromWeb2(first_date=datetime.datetime(2011,9,1), last_date=None):
     """This loads from the web using my sync gateway (more efficient, faster)
