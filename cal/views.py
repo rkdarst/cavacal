@@ -429,12 +429,35 @@ def search(request, searchstr=None):
     return HttpResponse(body)
 
 def log(request):
+    """Changelog for all changes for the last 168 hours.
+    """
 
     slots = LogSlot.objects.filter(
         mtime__gte=datetime.datetime.now()-datetime.timedelta(hours=168)
         ).order_by('mtime').reverse()
 
     t = django.template.loader.get_template("cava/log.html")
+    body = t.render(RequestContext(request, locals()))
+    return HttpResponse(body)
+
+def log_shift(request, shift_id, rank_id=None):
+    """Changelog for just one shift, optionally for only one rank.
+    """
+    shift_id = int(shift_id)
+    shift = Shift(shift_id=shift_id)
+    # Optional filtering by rank
+    filterargs = { }
+    ranktitle = ""
+    if rank_id is not None:
+        rank_id = int(rank_id)
+        filterargs['rank'] = Rank.objects.get(rank_id=rank_id)
+        ranktitle = filterargs['rank'].rank
+
+    slots = LogSlot.objects.filter(
+        shift_id=shift_id,
+        **filterargs
+        ).order_by('mtime').reverse()
+    t = django.template.loader.get_template("cava/log_shift.html")
     body = t.render(RequestContext(request, locals()))
     return HttpResponse(body)
 

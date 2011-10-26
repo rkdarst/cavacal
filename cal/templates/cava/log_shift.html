@@ -1,10 +1,10 @@
 {% extends "cava/calbase.html" %}
-{% block title %}Calender changelog{% endblock title %}
+{% block title %}Log of {{shift.text}} {{ ranktitle }} {% endblock title %}
 
 {% block body %}
-<h1>All changes within the last 168 hours</h1>
+<h1>Log of changes to shift {{ shift.text }} {{ ranktitle }}</h1>
 
-<a href="/cal/">Return to main</a>
+<a href="{% url cal.views.redirect_to_now %}">Return to main</a>
 
 <table border=1>
 <tr class="header">
