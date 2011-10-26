@@ -1,6 +1,6 @@
 {% extends "cava/calbase.html" %}
 
-{% block title %}CAVA: {{ year }} {{ monthstr }}{% endblock %}
+{% block title %}CAVA: {{ calendardate|date:"Y F" }} {{ranktitle}}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" type="text/css" href="/static/shadowbox/shadowbox.css">

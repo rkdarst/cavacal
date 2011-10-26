@@ -187,6 +187,8 @@ def month(request, year, month):
     year = int(year)
     month = int(month)
     date = datetime.date(year, month, 1)
+    calendardate = date
+    ranktitle = ""
     rows = [ ]
     today = datetime.date.today()
 
@@ -214,6 +216,7 @@ def month(request, year, month):
 
         rank_id = int(request.REQUEST['rank_id'])
         rank = Rank.objects.filter(rank_id=rank_id)[0]
+        ranktitle = rank.rank
 
         for i in range(8): # max number of weeks to possibly do
             week_row = [ ]
