@@ -172,11 +172,11 @@ class Schedule2(object):
 def loadFromWeb2(first_date=datetime.datetime(2011,9,1), last_date=None):
     """This loads from the web using my sync gateway (more efficient, faster)
     """
-    first_date = first_date.strftime('%Y-%m-%y')
+    first_date = first_date.strftime('%Y-%m-%d')
 
     url = 'http://www.cuems.org/cal/raw.py?first_date=%s'%first_date
     if last_date:
-        last_date  = last_date.strftime('%Y-%m-%y')
+        last_date  = last_date.strftime('%Y-%m-%d')
         url += '&last_date='+last_date
 
     import urllib
