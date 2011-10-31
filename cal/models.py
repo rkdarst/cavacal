@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q, Max
 from django.contrib.auth.models import User, AnonymousUser
+from django.utils.html import escape
 # Create your models here.
 
 import datetime
@@ -94,6 +95,12 @@ class LogSlot(models.Model):
             return self.changer_username
         else:
             return ''
+    def diffed(self):
+        if self.name_old == self.name_new:
+            return "-", self.name_new
+        return cava.util.makediff(escape(self.name_old), escape(self.name_new))
+    def diffedOld(self):  return self.diffed()[0]
+    def diffedNew(self):  return self.diffed()[1]
 
 
 class Schedule(object):

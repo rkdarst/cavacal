@@ -19,9 +19,11 @@
   <td class="sidebar">{{slot.prettymtime}}</td>
   <td {% if slot.shift.is_weekend%} class="weekend"{%endif%}>{{ slot.shift.text }}</td>
   <td>{{ slot.rank.rank }}</td>
-  <td>{{ slot.prettychanger }}</td>
+  <td>{{ slot.prettychanger }}</td>{% comment %}
   <td>{{ slot.name_old_if_different }}</td>
-  <td>{{ slot.name_new }}</td>
+  <td>{{ slot.name_new }}</td>{% endcomment %}
+  <td>{{ slot.diffedOld|safe }}</td>
+  <td>{{ slot.diffedNew|safe }}</td>
 <tr>
 {% endfor %}
 </tr>
