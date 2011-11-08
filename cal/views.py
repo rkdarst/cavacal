@@ -265,6 +265,8 @@ def month(request, year, month):
             row['month'] = date.strftime("%b")
             row['weekday'] = date.strftime("%a")
             row['today'] = False
+            if date.month != month:  row['moreclasses'] = " notthismonth"
+            else:                    row['moreclasses'] = ''
             for rank in ranks:
 
                 classes = [ ]

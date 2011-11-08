@@ -35,7 +35,7 @@ Shadowbox.init({
   {% if row.empty %}
   <tr cellpadding=5><td></td></tr>{% else %}
   <tr>
-  <td class="sidebar"><a name="{{row.day}}">{{row.month}} {{row.day}} ({{row.weekday}})</a></td>{% for cell in row.row %}
+  <td class="sidebar{{row.moreclasses}}"><a name="{{row.day}}">{{row.month}} {{row.day}} ({{row.weekday}})</a></td>{% for cell in row.row %}
     {{ cell|safe }}{% endfor%}
   </tr>{% endif %}
 {% if row.today and request.motd %}
