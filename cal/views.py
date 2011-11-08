@@ -532,6 +532,7 @@ def mobile_edit(request, shift_id=None):
     if shift_id is None:
         shift = cava.util.get_current_shift(
                     now=datetime.datetime.now()+datetime.timedelta(hours=1))
+        shift_id = int(shift)
         home = True
     else:
         shift_id = int(shift_id)
@@ -549,7 +550,9 @@ def mobile_edit(request, shift_id=None):
                     continue
                 schedule.setslot((shift, rank),
                                  new,
-                                 request.user)
+                                 #user=request.user,
+                                 user="mobile",
+                                 )
             return HttpResponseRedirect(reverse(mobile,
                                                 kwargs={'shift_id':shift_id}))
     else:
