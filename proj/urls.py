@@ -18,15 +18,6 @@ urlpatterns = patterns('',
     (r'^user/', include('cavapeople.urls')),
     (r'^m/', include('cal.urls_mobile')),
 
-#    (r'^m/(?P<shift_id>\d+)?/edit/$', 'cal.views.mobile_edit'),
-#    (r'^m/(?P<shift_id>\d+)?/$', 'cal.views.mobile'),
-#    (r'^m/$',                    'cal.views.mobile'),
-#    (r'^m/upcoming/(?P<shift_id>\d+)/$', 'cal.views.mobile_upcoming'),
-#    (r'^m/upcoming/$',                   'cal.views.mobile_upcoming'),
-#    (r'^m/log/(?P<page>\d+)/$', 'cal.views.mobile_log'),
-#    (r'^m/log/$',               'cal.views.mobile_log'),
-
-
     (r'^$', 'cal.views.redirect_to_now'),
 
 
