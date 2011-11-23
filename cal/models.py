@@ -16,8 +16,9 @@ class Permissions(models.Model):
     """This is a placeholder class to have permissions on"""
     class Meta:
         permissions = (
-            ('can_view_calendar', 'Can view the calendar'),
-            ('can_edit_calendar', 'Can edit the calendar'),
+            ('can_view_calendar',      'Can view the calendar'),
+            ('can_edit_calendar',      'Can edit the calendar'),
+            ('can_edit_past_calendar', 'Can edit the calendar retroactively'),
             )
 
 
