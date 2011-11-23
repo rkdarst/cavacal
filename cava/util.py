@@ -4,6 +4,7 @@ import datetime
 import email
 import email.mime
 import email.mime.text
+import math
 import re
 import textwrap
 
@@ -238,44 +239,69 @@ bracket_re = re.compile(r'\[[^]]*\]')
 paren_re   = re.compile(r'\([^)]*\)')
 split_re   = re.compile(r'/+')
 time_re    = re.compile(r'(\d{1,2}):?(\d{2})$')
-def _maketime(string):
+def _matchtime(string):
     m = time_re.match(string)
     if not m:
         return None
     return datetime.time(int(m.group(1)), int(m.group(2)))
 def _getsecs(t):
-    return t.hours*3600 + t.minutes*60 + t.seconds + t.microseconds/1e6
-def _getrealtime(start, t):
-    """Convert a shift and a time into the actual time it represents."""
-    newt = start.replace(hours=t.hours,
-                         minutes=t.minutes,
-                         seconds=t.seconds)
-    dt = abs(_getsecs(shift.start().time()) - getsecs(t))
-    if dt > 12*3600:
-        # We need to wrap around
-        if start.hour < 12:
-            # Morning time, wrap around to previous night
-            newt -= datetime.timedelta(days=1)
-        else:
-            pass
-def parseslot(shift, slot):
-    slot = slot.strip()
+    return t.hour*3600 + t.minute*60 + t.second + t.microsecond/1e6
+def _getrealtime(start, t, backwards=False):
+    """Convert a datetime and a time into the actual time it represents."""
+    #newt = start.replace(hours=t.hours,
+    #                     minutes=t.minutes,
+    #                     seconds=t.seconds)
+    dt = _getsecs(t) - _getsecs(start)
+    dt1 = dt
+    if backwards:
+        dt = dt - ((dt+43200) // (86400)) * (86400)
+    else:
+        dt = dt - ((dt+0) // (86400)) * (86400)
+    dt2 = dt
+    dt = datetime.timedelta(seconds=dt)
+    return start + dt
+def parseslot(shift, slotcontents):
+    slot = slotcontents.strip()
     slot = bracket_re.sub('', slot)
     slot = paren_re.sub('', slot)
     parts = split_re.split(slot)
 
-    curtime = None
-    name = None
+    curtime = shift.start()
+    name = ''
+    shift_people = [ ] # List of lists [name, start, end]
+    last_part=None
 
-    for part in parts:
-        t = matchtime(part)
+    for i, part in enumerate(parts):
+        if not part.strip():
+            continue
+        t = _matchtime(part)
         if t is not None:
             # Handle a time
-            pass
-        # Handle a name
-        pass
+            curtime = _getrealtime(curtime, t,
+                            backwards=True if len(shift_people)==0 else False)
+            #if len(shift_people) > 0:
+            #    shift_people[-1][2] = curtime
+            for row in shift_people:
+                if row[2] == None:
+                    row[2] = curtime
+            last_part = "time"
+        else:
+            # Handle a name
+            name = part.strip()
+            shift_people.append([name, curtime, None])
+            last_part = "name"
+    if last_part == "time":
+        shift_people[-1][2] = curtime
+        for row in shift_people:
+            if row[2] == None:
+                row[2] = curtime
+    elif last_part == "name":
+        #shift_people[-1][2] = shift.end()
+        for row in shift_people:
+            if row[2] == None:
+                row[2] = shift.end()
 
-
+    return shift_people
 
 def makediff(s1, s2):
     """Diff two shifts, returning new two-string diff."""
