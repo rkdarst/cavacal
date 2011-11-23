@@ -1,0 +1,67 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA Shift #{{ shift_id }}, {{rank.rank}}{% endblock %}
+
+{% block body %}
+
+
+<h1>CAVA Shift #{{ shift_id }}, {{rank.rank}}</h1>
+
+<a href="{% url cal.views.redirect_to_now %}">Return to main</a><p>
+
+{% if can_edit %}<a href="{% url cal.views.setslot shift_id=shift_id, rank_id=rank_id %}">Edit this shift</a>{% endif %}<p>
+
+<h2>Current shift contents</h2>
+
+<p>{{ slot.shift.text }}</p>
+
+<p>{{slot.shift.start}} -- {{slot.shift.end}}</p>
+
+<p>{{ slot.name }}</p>
+
+<h2>Log of changes to shift</h2>
+
+<table border=1>
+<tr class="header">
+  <td>Mod Time</td>
+  <td>Shift</td>
+  <td>Rank</td>
+  <td>Changed by</td>
+  <td>From</td>
+  <td>To</td>
+{% for slot in log %}
+<tr>
+  <td class="sidebar">{{slot.prettymtime}}</td>
+  <td {% if slot.shift.is_weekend%} class="weekend"{%endif%}>{{ slot.shift.text }}</td>
+  <td>{{ slot.rank.rank }}</td>
+  <td>{{ slot.prettychanger }}</td>{% comment %}
+  <td>{{ slot.name_old_if_different }}</td>
+  <td>{{ slot.name_new }}</td>{% endcomment %}
+  <td>{{ slot.diffedOld|safe }}</td>
+  <td>{{ slot.diffedNew|safe }}</td>
+<tr>
+{% endfor %}
+</tr>
+</table>
+
+<h2>Automatic parsing of shift</h2>
+
+(this is only useful for debugging, probably)
+
+<table border=1>
+<tr class="header">
+  <td>Name</td>
+  <td>Start</td>
+  <td>End</td>
+</tr>
+{% for row in parsed_shift %}
+<tr>
+  <td>{{ row.0 }}</td>
+  <td>{{ row.1|date:"Y-M-d H:i" }}</td>
+  <td>{{ row.2|date:"Y-M-d H:i" }}</td>
+</tr>
+{% endfor %}
+</table>
+
+
+{% endblock body %}

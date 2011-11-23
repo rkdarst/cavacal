@@ -1,0 +1,32 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA time log tally{% endblock title %}
+
+{% block body %}
+
+<form>
+{{ form.as_p }}
+<input type="submit">
+</form>
+
+<table border="1">
+<tr class="header">
+  <td>Name</td>
+  <td>Cumulative time</td>
+  <td>Hours</td>
+  <td>Hours (Weekend)</td>
+</tr>
+{% for row in rows %}
+<tr>
+  {#<td class="sidebar"><a href="{% url cal.views.shift shift_id=row.slot.shift_id rank_id=row.slot.rank.rank_id %}" class="elnk">{{ row.slot.shift.text }}</a></td>#}
+  <td><a href="{% url cal.views.time_person%}?{{row.queryargs}}">{{ row.name.capitalize }}</a></td>
+  <td align="right">{{ row.dt }}</td>
+  <td align="right">{{ row.hours|stringformat:".1f" }} hours</td>
+  <td align="right">{{ row.hours_weekend|stringformat:".1f" }} hours</td>
+</tr>
+{% endfor %}
+</table>
+
+
+
+{% endblock body%}

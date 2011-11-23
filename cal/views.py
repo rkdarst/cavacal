@@ -1,5 +1,6 @@
 # Create your views here.
 
+import collections
 import datetime
 import textwrap
 import os
@@ -178,6 +179,30 @@ def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
         cell.append(slot)
     cell = '<br>'.join(cell)
     return cell
+
+
+def shift(request, shift_id, rank_id):
+    REQUEST = request.REQUEST
+
+    can_edit = False
+    if request.user.has_perm('cal.can_edit_calendar'):
+        can_edit = True
+
+
+    shift_id = int(shift_id)
+    shift = Shift(shift_id)
+    rank_id  = int(rank_id)
+    rank = Rank.objects.get(rank_id=rank_id)
+    slot = Slot.objects.get(shift_id=shift_id, rank=rank)
+
+    parsed_shift = cava.util.parseslot(shift, slot.name)
+
+    log = LogSlot.objects.filter(
+        shift_id=shift_id, rank=rank_id).order_by('mtime').reverse()
+
+    t = django.template.loader.get_template("cava/shift.html")
+    body = t.render(RequestContext(request, locals()))
+    return HttpResponse(body)
 
 
 
@@ -709,4 +734,162 @@ def highlight(request):
     t = django.template.loader.get_template("cava/highlight.html")
     c = RequestContext(request, locals())
     body = t.render(c)
+    return HttpResponse(body)
+
+
+
+class TimePersonForm(forms.Form):
+    q = forms.CharField(max_length=256, label="Query", required=False)
+    firstdate = forms.DateField(label="First date", required=False)
+    lastdate  = forms.DateField(label="Last date", required=False)
+    weekend  = forms.BooleanField(label="Limit to weekends", required=False)
+    regex  = forms.BooleanField(label="Regular expression search?",
+                                required=False,
+                                widget=forms.HiddenInput())
+class TimeCountForm(forms.Form):
+    rank = forms.ModelChoiceField(Rank.objects.all(), required=False)
+    firstdate = forms.DateField(label="First date", required=False)
+    lastdate  = forms.DateField(label="Last date", required=False)
+    weekend  = forms.BooleanField(label="Limit to weekends", required=False)
+    regex  = forms.BooleanField(label="Regular expression search?",
+                                required=False,
+                                widget=forms.HiddenInput())
+
+
+def time_person(request, searchstr=None):
+    form = TimePersonForm(request.GET)
+    form.is_valid()
+
+    if 'q' in form.cleaned_data:
+        searchstr = form.cleaned_data['q']
+    elif searchstr is not None and searchstr.strip():
+        stearchstr = searchstr
+    else:
+        searchstr = ''
+    #regex = False
+    #if request.REQUEST.get('regex', False):
+    #    regex = True
+    #weekend=False
+    #if request.REQUEST.get('weekend', False):
+    #    weekend = True
+
+    if searchstr:
+        args = { }
+        # regex
+        use_regex = form.cleaned_data.get('regex', False)
+        if use_regex:
+            args['name__iregex'] = searchstr
+            regex_pattern = re.compile(searchstr, re.I)
+        else:
+            args['name__icontains'] = searchstr
+        # Date limiting
+        if form.cleaned_data['firstdate']:
+            firstdate = form.cleaned_data['firstdate']
+            args['shift_id__gte'] = Shift(date=firstdate, time='am')
+        if form.cleaned_data['lastdate']:
+            lastdate = form.cleaned_data['lastdate']
+            args['shift_id__lte'] = Shift(date=lastdate, time='pm')
+        # Select and process
+        matches = Slot.objects.filter(**args)
+        matches.order_by('-shift_id')
+        matches = list(matches)
+        if form.cleaned_data['weekend']:
+            matches = [ m for m in matches if m.shift().is_weekend() ]
+        matches.sort(key=lambda x: x.shift_id, reverse=True)
+
+        # Generate all the rows.
+        rows = [ ]
+        cumulative = datetime.timedelta()
+        for slot in matches:
+            intervals = cava.util.parseslot(slot.shift(), slot.name)
+            for name, start, end in intervals:
+                if (   (not use_regex and searchstr.lower() in name.lower())
+                    or (    use_regex and regex_pattern.search(name) )):
+                    #if start is None or end is None:
+                    #    continue
+                    dt = end-start
+                    cumulative += dt
+                    seconds = cumulative.days*24*3600 + cumulative.seconds
+                    hours = seconds / 3600.
+                    row = dict(slot=slot,
+                               #shift=slot.shift().text(),
+                               #slotname=slot.name,
+                               name=name,
+                               start=start,
+                               end=end,
+                               dt=dt,
+                               cum=cumulative,
+                               cumhours=hours,
+                               )
+                    rows.append(row)
+
+    template = django.template.loader.get_template("cava/time_person.html")
+    body = template.render(RequestContext(request, locals()))
+    return HttpResponse(body)
+
+def time_count(request, searchstr=None):
+    form = TimeCountForm(request.GET)
+    #print dir(form.fields)
+    #form.fields['rank'].widget = forms.ModelChoiceField.widget
+    form.is_valid()
+
+    args = { }
+    ## regex
+    #use_regex = form.cleaned_data.get('regex', False)
+    #if use_regex:
+    #    args['name__iregex'] = searchstr
+    #    regex_pattern = re.compile(searchstr, re.I)
+    #else:
+    #    args['name__icontains'] = searchstr
+    # Date limiting
+    firstdate = None
+    lastdate = None
+    if form.cleaned_data['firstdate']:
+        firstdate = form.cleaned_data['firstdate']
+        args['shift_id__gte'] = Shift(date=firstdate, time='am')
+    if form.cleaned_data['lastdate']:
+        lastdate = form.cleaned_data['lastdate']
+        args['shift_id__lte'] = Shift(date=lastdate, time='pm')
+    if form.cleaned_data['rank']:
+        args['rank'] = form.cleaned_data['rank']
+
+    # Select and process
+    matches = Slot.objects.filter(**args)
+    matches.order_by('-shift_id')
+    matches = list(matches)
+    if form.cleaned_data['weekend']:
+        matches = [ m for m in matches if m.shift().is_weekend() ]
+    matches.sort(key=lambda x: x.shift_id, reverse=True)
+
+    # Generate all the rows.
+    count = collections.defaultdict(lambda: [datetime.timedelta(),
+                                             datetime.timedelta()])
+    rows = [ ]
+    cumulative = datetime.timedelta()
+    for slot in matches:
+        intervals = cava.util.parseslot(slot.shift(), slot.name)
+        for name, start, end in intervals:
+                #if start is None or end is None:
+                #    continue
+                dt = end-start
+                name = name.lower()
+                count[name][0] += dt
+                if slot.shift().is_weekend():
+                    count[name][1] += dt
+
+    rows = [ ]
+    for name, (dt, dt_weekend) in sorted(count.iteritems(),
+                                         reverse=True, key=lambda x:x[1][0]):
+        rows.append(dict(name=name,
+                         dt=dt,
+                         hours=(dt.days*24)+dt.seconds/3600.,
+                         hours_weekend=(dt_weekend.days*24)+\
+                                        dt_weekend.seconds/3600.,
+                         queryargs="&".join(("q="+name,
+       firstdate.strftime("firstdate=%Y-%m-%d") if firstdate else "firstdate=",
+       lastdate.strftime("lastdate=%Y-%m-%d") if lastdate else "lastdate=",
+                                             ))))
+
+    template = django.template.loader.get_template("cava/time_count.html")
+    body = template.render(RequestContext(request, locals()))
     return HttpResponse(body)

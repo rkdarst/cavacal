@@ -1,0 +1,41 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA time log for {{ searchstr }} {% endblock title %}
+
+{% block body %}
+
+<form>
+{{ form.as_p }}
+<input type="submit">
+</form>
+
+<table border="1">
+<tr class="header">
+  <td>Shift</td>
+  <td>Shift</td>
+  <td>Name</td>
+  <td>Start</td>
+  <td>End</td>
+  <td>Delta t</td>
+  <td>Cumulative time</td>
+  <td>Cumulative time</td>
+</tr>
+{% for row in rows %}
+<tr>
+  <td class="sidebar"><a href="{% url cal.views.shift shift_id=row.slot.shift_id rank_id=row.slot.rank.rank_id %}" class="elnk">{{ row.slot.shift.text }}</a></td>
+  <td>{{ row.slot.name }}</td>
+  <td>{{ row.name }}</td>{% comment %}
+  <td>{{ row.start|date:"Y-M-d H:i" }}</td>
+  <td>{{ row.end|date:"Y-M-d H:i" }}</td>{% endcomment %}
+  <td>{{ row.start|date:"H:i" }}</td>
+  <td>{{ row.end|date:"H:i" }}</td>
+  <td align="right">{{ row.dt }}</td>
+  <td>{{ row.cum }}</td>
+  <td align="right">{{ row.cumhours|stringformat:".1f" }} hours</td>
+</tr>
+{% endfor %}
+</table>
+
+
+
+{% endblock body%}
