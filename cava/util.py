@@ -90,7 +90,9 @@ class Shift(object):
         weekday = self.date.weekday()
         if weekday in (3,4) and self.time == 'pm':
             return True
-        if weekday in (5,6):
+        if weekday == 5:
+            return True
+        if weekday == 6 and self.time == 'am':
             return True
         return False
 
