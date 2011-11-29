@@ -277,14 +277,21 @@ def month(request, year, month):
         template = django.template.loader.get_template("cava/calendar_month.html")
 
     else:
+        # Set stop date before we set the starting date.
+        stopDate = cava.util.increment_month(date)
+        stopDate += datetime.timedelta(days=5)
+
+        # If we are within 3 days of next month, show it anyway:
+        if 0 < (date - today).days < 5:
+            date = today
+
         # All ranks in a vertical table
         table_header = ["<b>%s</b>"%(rank.rank) for rank in ranks ]
         table_header = ["<td>%s</td>"%h for h in table_header]
         #table_header = ' '.join(table_header)
 
         table = [ ]
-        # FIXME This condition is broken for december
-        while date.month == month or (date.month==month+1 and date.day<6):
+        while date < stopDate:
             row = {'row':[ ]}
             row['day'] = "%02d"%date.day
             row['month'] = date.strftime("%b")
