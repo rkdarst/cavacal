@@ -1,0 +1,33 @@
+{% extends "cava/calbase.html" %}
+
+{% block title %}CAVA time histogram for {{ q }} {% endblock title %}
+
+{% block body %}
+
+<form>
+{{ form.as_p }}
+<input type="submit">
+</form>
+
+<p><a href="{% url cal.views.time_person %}?{{ request.GET.urlencode|safe }}">Search for this person's shifts</a></p>
+
+<p><img src="{{ img_path|safe }}"</a></p>
+
+<table border="1">
+<tr class="header">
+  <td>Time</td>
+  <td>Time</td>
+  <td>Count</td>
+</tr>
+{% for row in rows %}
+<tr>
+  <td class="sidebar">{{ row.time }}</td>
+  <td>{{ row.day }} {{ row.hour }}:{{ row.minute }}</td>
+  <td>{{ row.count }}</td>
+</tr>
+{% endfor %}
+</table>
+
+
+
+{% endblock body %}

@@ -1,6 +1,6 @@
 {% extends "cava/calbase.html" %}
 
-{% block title %}CAVA time log for {{ searchstr }} {% endblock title %}
+{% block title %}CAVA time log for {{ q }} {% endblock title %}
 
 {% block body %}
 
@@ -8,6 +8,9 @@
 {{ form.as_p }}
 <input type="submit">
 </form>
+
+<p><a href="{% url cal.views.time_histogram %}?{{ request.GET.urlencode|safe }}">Histogram of this person's shifts per week</a></p>
+
 
 <table border="1">
 <tr class="header">

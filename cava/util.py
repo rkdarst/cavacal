@@ -343,7 +343,50 @@ def makediff(s1, s2):
     return ''.join(s1new), ''.join(s2new)
 
 
+class Histogram(object):
+    def __init__(self):
+        self.times = [ ]
+        self.counts = [ ]
+    def _insert_index(self, index, time):
+        self.times.insert(index, time)
+        if index == 0:
+            value = 0
+        else:
+            value = self.counts[index-1]
+        self.counts.insert(index, value)
+    def _find_time_index(self, time):
+        """Find time index, add it if needed, return index"""
+        try:
+            index = self.times.index(time)
+        except ValueError:
+            index = 0
+            while True:
+                if index >= len(self.times):
+                    self._insert_index(len(self.times), time)
+                    break
+                if self.times[index] > time:
+                    self._insert_index(index, time)
+                    break
+                index += 1
+        return index
+    def add(self, start, end, value=1):
+        """Add value between start and end."""
+        index_start = self._find_time_index(start)
+        index_end = self._find_time_index(end)
+        for i in range(index_start, index_end):
+            self.counts[i] += value
+    def rows(self):
+        """Return [(t0, c0), (t1, c1), ...]"""
+        return zip(self.times, self.counts)
 
+def _test_histogram():
+    H = Histogram()
+    H.add(0, 5)
+    print H.rows()
+    H.add(3, 10)
+    H.add(1, 5)
+    H.add(2, 5)
+    print H.rows()
 
 #def parseShift(text, xm='am'):
 #    text = re.sub('\([^)]*\)', '', text)
@@ -352,11 +395,13 @@ def makediff(s1, s2):
 
 if __name__ == "__main__":
     #parseShift("richard//2000//laura(sarah)")
-    print int(Shift(2010,10,21, 'am'))
+    #print int(Shift(2010,10,21, 'am'))
 
-    cava = Schedule(members=members)
+    #cava = Schedule(members=members)
 
-    msgs = cava.emailDate(29806)
-    for msg in msgs:
-        print msg
+    #msgs = cava.emailDate(29806)
+    #for msg in msgs:
+    #    print msg
     #from fitz import interactnow
+
+    _test_histogram()

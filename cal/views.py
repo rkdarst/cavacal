@@ -739,63 +739,67 @@ def highlight(request):
 
 
 class TimePersonForm(forms.Form):
-    q = forms.CharField(max_length=256, label="Query", required=False)
-    firstdate = forms.DateField(label="First date", required=False)
-    lastdate  = forms.DateField(label="Last date", required=False)
+    q = forms.CharField(max_length=256, label="Name", required=1,
+                        error_messages={'required':
+                                        'You must enter a name.'})
+    rank = forms.ModelChoiceField(Rank.objects.all(), required=False)
+    firstdate = forms.DateField(label="First date (YYYY-MM-DD)",required=False)
+    lastdate  = forms.DateField(label="Last date (YYYY-MM-DD)", required=False)
     weekend  = forms.BooleanField(label="Limit to weekends", required=False)
     regex  = forms.BooleanField(label="Regular expression search?",
                                 required=False,
                                 widget=forms.HiddenInput())
 class TimeCountForm(forms.Form):
     rank = forms.ModelChoiceField(Rank.objects.all(), required=False)
-    firstdate = forms.DateField(label="First date", required=False)
-    lastdate  = forms.DateField(label="Last date", required=False)
+    firstdate = forms.DateField(label="First date (YYYY-MM-DD)",required=False)
+    lastdate  = forms.DateField(label="Last date (YYYY-MM-DD)", required=False)
     weekend  = forms.BooleanField(label="Limit to weekends", required=False)
     regex  = forms.BooleanField(label="Regular expression search?",
                                 required=False,
                                 widget=forms.HiddenInput())
+def get_time_slots(regex=False, **kwargs):
+    """Get time slots
+    """
 
+    searchargs = { }
+    if 'q' in kwargs:
+        use_regex = regex
+        if use_regex:
+            searchargs['name__iregex'] = kwargs['q']
+        else:
+            searchargs['name__icontains'] = kwargs['q']
 
-def time_person(request, searchstr=None):
+    firstdate = None
+    lastdate = None
+    if kwargs['firstdate']:
+        firstdate = kwargs['firstdate']
+        searchargs['shift_id__gte'] = Shift(date=firstdate, time='am')
+    if kwargs['lastdate']:
+        lastdate = kwargs['lastdate']
+        searchargs['shift_id__lte'] = Shift(date=lastdate, time='pm')
+    if kwargs.get('rank', None):
+        searchargs['rank'] = kwargs['rank']
+
+    matches = Slot.objects.filter(**searchargs)
+    matches.order_by('-shift_id')
+    matches = list(matches)
+    if kwargs.get('weekend', False):
+        matches = [ m for m in matches if m.shift().is_weekend() ]
+    matches.sort(key=lambda x: x.shift_id, reverse=True)
+    return matches
+
+def time_person(request, q=None):
     form = TimePersonForm(request.GET)
-    form.is_valid()
+    if not form.is_valid():
+        pass
 
-    if 'q' in form.cleaned_data:
-        searchstr = form.cleaned_data['q']
-    elif searchstr is not None and searchstr.strip():
-        stearchstr = searchstr
-    else:
-        searchstr = ''
-    #regex = False
-    #if request.REQUEST.get('regex', False):
-    #    regex = True
-    #weekend=False
-    #if request.REQUEST.get('weekend', False):
-    #    weekend = True
-
-    if searchstr:
-        args = { }
-        # regex
+    #if form.cleaned_data.get('q', ''):
+    else: #if True:
+        q = form.cleaned_data['q']
         use_regex = form.cleaned_data.get('regex', False)
         if use_regex:
-            args['name__iregex'] = searchstr
-            regex_pattern = re.compile(searchstr, re.I)
-        else:
-            args['name__icontains'] = searchstr
-        # Date limiting
-        if form.cleaned_data['firstdate']:
-            firstdate = form.cleaned_data['firstdate']
-            args['shift_id__gte'] = Shift(date=firstdate, time='am')
-        if form.cleaned_data['lastdate']:
-            lastdate = form.cleaned_data['lastdate']
-            args['shift_id__lte'] = Shift(date=lastdate, time='pm')
-        # Select and process
-        matches = Slot.objects.filter(**args)
-        matches.order_by('-shift_id')
-        matches = list(matches)
-        if form.cleaned_data['weekend']:
-            matches = [ m for m in matches if m.shift().is_weekend() ]
-        matches.sort(key=lambda x: x.shift_id, reverse=True)
+            regex_pattern = re.compile(q, re.I)
+        matches = get_time_slots(**form.cleaned_data)
 
         # Generate all the rows.
         rows = [ ]
@@ -803,7 +807,7 @@ def time_person(request, searchstr=None):
         for slot in matches:
             intervals = cava.util.parseslot(slot.shift(), slot.name)
             for name, start, end in intervals:
-                if (   (not use_regex and searchstr.lower() in name.lower())
+                if (   (not use_regex and q.lower() in name.lower())
                     or (    use_regex and regex_pattern.search(name) )):
                     #if start is None or end is None:
                     #    continue
@@ -827,44 +831,20 @@ def time_person(request, searchstr=None):
     body = template.render(RequestContext(request, locals()))
     return HttpResponse(body)
 
-def time_count(request, searchstr=None):
+def time_count(request):
     form = TimeCountForm(request.GET)
-    #print dir(form.fields)
-    #form.fields['rank'].widget = forms.ModelChoiceField.widget
     form.is_valid()
 
-    args = { }
-    ## regex
-    #use_regex = form.cleaned_data.get('regex', False)
-    #if use_regex:
-    #    args['name__iregex'] = searchstr
-    #    regex_pattern = re.compile(searchstr, re.I)
-    #else:
-    #    args['name__icontains'] = searchstr
-    # Date limiting
-    firstdate = None
-    lastdate = None
-    if form.cleaned_data['firstdate']:
-        firstdate = form.cleaned_data['firstdate']
-        args['shift_id__gte'] = Shift(date=firstdate, time='am')
-    if form.cleaned_data['lastdate']:
-        lastdate = form.cleaned_data['lastdate']
-        args['shift_id__lte'] = Shift(date=lastdate, time='pm')
-    if form.cleaned_data['rank']:
-        args['rank'] = form.cleaned_data['rank']
+    personqueryargs = request.GET.copy()
+    for key in personqueryargs:
+        if key not in ('regex', 'rank', 'firstdate', 'lastdate'):
+            del personqueryargs['key']
 
-    # Select and process
-    matches = Slot.objects.filter(**args)
-    matches.order_by('-shift_id')
-    matches = list(matches)
-    if form.cleaned_data['weekend']:
-        matches = [ m for m in matches if m.shift().is_weekend() ]
-    matches.sort(key=lambda x: x.shift_id, reverse=True)
+    matches = get_time_slots(**form.cleaned_data)
 
     # Generate all the rows.
     count = collections.defaultdict(lambda: [datetime.timedelta(),
                                              datetime.timedelta()])
-    rows = [ ]
     cumulative = datetime.timedelta()
     for slot in matches:
         intervals = cava.util.parseslot(slot.shift(), slot.name)
@@ -880,16 +860,107 @@ def time_count(request, searchstr=None):
     rows = [ ]
     for name, (dt, dt_weekend) in sorted(count.iteritems(),
                                          reverse=True, key=lambda x:x[1][0]):
+        personqueryargs['q'] = name
         rows.append(dict(name=name,
                          dt=dt,
                          hours=(dt.days*24)+dt.seconds/3600.,
                          hours_weekend=(dt_weekend.days*24)+\
                                         dt_weekend.seconds/3600.,
-                         queryargs="&".join(("q="+name,
-       firstdate.strftime("firstdate=%Y-%m-%d") if firstdate else "firstdate=",
-       lastdate.strftime("lastdate=%Y-%m-%d") if lastdate else "lastdate=",
-                                             ))))
+                         queryargs=personqueryargs.urlencode(),
+                         ))
 
     template = django.template.loader.get_template("cava/time_count.html")
+    body = template.render(RequestContext(request, locals()))
+    return HttpResponse(body)
+def _time_since_weekstart(d):
+    weekstart = d - datetime.timedelta(days=d.weekday())
+    td = (d - datetime.datetime(weekstart.year,weekstart.month,weekstart.day))
+    mins = td.days*1440 + td.seconds//60
+    return mins
+def time_histogram(request):
+    form = TimePersonForm(request.GET)
+    form.is_valid()
+
+    if form.cleaned_data.get('q', ''):
+        q = form.cleaned_data['q']
+        use_regex = form.cleaned_data.get('regex', False)
+        if use_regex:
+            regex_pattern = re.compile(q, re.I)
+        matches = get_time_slots(**form.cleaned_data)
+
+        #use_regex = form.cleaned_data.get('regex', False)
+        #if use_regex:
+        #    regex_pattern = re.compile(form.cleaned_data['q'], re.I)
+        matches = get_time_slots(**form.cleaned_data)
+
+        H = cava.util.Histogram()
+
+        for slot in matches:
+            intervals = cava.util.parseslot(slot.shift(), slot.name)
+            for name, start, end in intervals:
+                if not (   (not use_regex and q.lower() in name.lower())
+                        or (    use_regex and regex_pattern.search(name) )):
+                    continue
+                start_mins = _time_since_weekstart(start)
+                end_mins   = _time_since_weekstart(end)
+                #if start_mins == 970 or end_mins == 970:
+                #    print start_mins, end_mins
+                if end_mins > start_mins:
+                    H.add(start_mins, end_mins)
+                else:
+                    H.add(start_mins, 10080)
+                    H.add(0, end_mins)
+        plot_rows = [ (0, 0) ]
+        rows = [ ]
+        for time, count in H.rows():
+            plot_rows.append((time/1440., plot_rows[-1][1]))
+            rows.append(dict(count=count,
+                             time=time,
+                             day=time//1440,
+                             hour=time%1440 // 60,
+                             minute=time%60,
+                             ))
+            plot_rows.append((time/1440., count))
+
+        img_path = request.get_full_path()+'&img=1'
+        #print 'w'
+        #for row in rows:
+        #    pass
+        #print 'x'
+        #for t, c in plot_rows:
+        #    if .5 < t < .8:
+        #        print t, c
+        #print 'y'
+        #for t, c in H.rows():
+        #    if 800 < t < 1200:
+        #        print t, c
+
+        if 'img' in request.REQUEST:
+            import tempfile
+            tmpdir = tempfile.mkdtemp()
+            os.environ['MPLCONFIGDIR'] = tmpdir
+            from matplotlib.backends.backend_agg import Figure, FigureCanvasAgg
+            f = Figure()
+            c = FigureCanvasAgg(f)
+            ax  = f.add_subplot(111)
+            ax.set_xlabel("Days (0=Monday, 1=Tuesday, etc)")
+            ax.set_ylabel("Number of times on call")
+            for dayx, day in zip((.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5),
+                              "MTWTFSS"):
+                ax.text(x=dayx, y=.5, s=day)
+            ts, cs = zip(*plot_rows)
+            ax.plot(ts, cs)
+            ax.set_xlim(0, 7)
+            for i in range(1, 7):
+                ax.axvline(x=i, color='gray', linestyle='--')
+            import cStringIO
+            p = cStringIO.StringIO()
+            c.print_figure(p, bbox_inches='tight')
+            import shutil
+            shutil.rmtree(tmpdir)
+            response = HttpResponse(p.getvalue(), mimetype="image/png")
+            return response
+
+    template = django.template.loader.get_template("cava/time_histogram.html")
     body = template.render(RequestContext(request, locals()))
     return HttpResponse(body)
