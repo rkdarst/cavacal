@@ -799,9 +799,7 @@ def time_person(request, q=None):
     form = TimePersonForm(request.GET)
     if not form.is_valid():
         pass
-
-    #if form.cleaned_data.get('q', ''):
-    else: #if True:
+    else:
         q = form.cleaned_data['q']
         use_regex = form.cleaned_data.get('regex', False)
         if use_regex:
@@ -886,22 +884,16 @@ def _time_since_weekstart(d):
     return mins
 def time_histogram(request):
     form = TimePersonForm(request.GET)
-    form.is_valid()
-
-    if form.cleaned_data.get('q', ''):
+    if not form.is_valid():
+        pass
+    else:
         q = form.cleaned_data['q']
         use_regex = form.cleaned_data.get('regex', False)
         if use_regex:
             regex_pattern = re.compile(q, re.I)
         matches = get_time_slots(**form.cleaned_data)
 
-        #use_regex = form.cleaned_data.get('regex', False)
-        #if use_regex:
-        #    regex_pattern = re.compile(form.cleaned_data['q'], re.I)
-        matches = get_time_slots(**form.cleaned_data)
-
         H = cava.util.Histogram()
-
         for slot in matches:
             intervals = cava.util.parseslot(slot.shift(), slot.name)
             for name, start, end in intervals:
