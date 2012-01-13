@@ -8,6 +8,39 @@
 
 This site is a test calendar for CAVA.<p>
 
+<b>Summary of features</b><p>
+<ul>
+<li>You can see <a href="{% url cal.views.month year=2011 month=11 %}">all ranks
+    at once</a>.</li>
+<li>You can also see just the <a href="{% url cal.views.month year=2011 month=11 %}?rank_id=1">month view</a> for one rank</li>
+    <ul><li>On the month view, hover over "AM" or "PM" to show full
+    crew.</li></ul>
+<li>These views show a few days before and after, so you don't have to
+    go switching pages so often.</li>
+<li>Can <a href="{% url cal.views.search%}">search</a> for all of your
+    shifts (useful for a historical record).</li>
+<li><a href="{% url cal.views.highlight %}">Highlight</a> your name in
+    the schedule.</li>
+<li><a href="{% url cal.export.ical %}">Export</a> the schedule to
+    your own calendar, such as Google Calendar or iCal.</li>
+<li>There is a <a href="{% url cal.views.mobile %}">mobile</a> version
+    of most of these things.</li>
+<li>Can view a history of when shifts are edited:</li><ul>
+  <li>A <a href="{% url cal.views.log%}">full history</a> of all changes.</li>
+  <li>... or a log of <a href="{% url cal.views.shift shift_id=30594 rank_id=1%}">individual shifts</a>.</li></ul>
+<li>You can look at various statistics about exactly how much time you
+    have been on:</li>
+    <ul>
+    <li>Search for <a href="{% url cal.views.time_person %}">how many
+        hours you have been on</a>.</li>
+    <li>Make a <a href="{% url cal.views.time_histogram %}">histogram</a>
+        of the times you are typically on.</li>
+    <li>Make a count of <a href="{% url cal.views.time_count %}">how
+        many hours different people have been on</a> in a time interval.</li>
+    </ul>
+</ul>
+
+
 <b>Why does this exist?</b>  Because darst is a really lazy grad
 student.  It was mostly an excuse for em to learn something new.  If
 it is used or not is not so important, but as long it's being made,
@@ -16,26 +49,25 @@ someone might as well use it.  Plus, it's more fun to make it <p>
 <b>I like this site.  What should I do?</b>
 <ul>
 <li>Use it.</li>
-<li>Tell your friends in CAVA about it.</li>
+<li>Tell your friends in CAVA about it (otherwise they won't know...).</li>
 <li>Send reports of problems or improvements to darst.</li>
 </ul>
 
 <b>Why can everyone on the Internet see this?</b>  Because if you
 couldn't see it now, you couldn't see what it is like.  It has a
 permissions and groups system and is just waiting for it to be
-enabled.<p>
+enabled.  Darst can selectively block out certain people's names.<p>
 
 <b>I noticed something wrong / a bug.</b>  Please email or
 tell <a href="mailto:rkd@zgib.net">darst</a> and it will be checked
 on.  This is still under development, so problems are expected.<p>
 
-<b>Is the schedule data in this calendar valid?</b>
+<b>Is the schedule data in this calendar up to date?</b>
 <ul>
-<li>It is updated from the main CAVA calendar every hour (on the
-  xx:07), so it is reasonably recent.  Months beyond the current one
-  are only updated every few hours.</li>
-<li>There is a way that changes on this calendar could be pushed to
-  the main calendar.</li>
+<li>It is updated from the main CAVA calendar every fifteen minutes
+  (when minute % 15 ==7o), so it is recent enough for most use.</li>
+<li>You can edit this calendar (with an account+permissions) and the
+  changes will be pushed to the main calendar.</li>
 <li>Thus, it would be possible to use both calendars at the same
   time.</i>
 </ul>
