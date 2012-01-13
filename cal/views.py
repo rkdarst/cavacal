@@ -144,23 +144,27 @@ def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
             link = reverse(setslot,
                        kwargs=dict(shift_id=int(shift), rank_id=rank.rank_id))
         else:
-            link = ''
+            link = reverse(shift_info,
+                       kwargs=dict(shift_id=int(shift), rank_id=rank.rank_id))
 
         #if shift.date < datetime.date.today():
         #    can_edit = False
 
-        # Do authentication / deciding if we should link here.
-        if not can_edit:
-            slot = '%(time)s: %(name)s'
-            #slot = '{{time|upper}}: {{name}}'
-        elif not name.strip():
-            # rel="shadowbox"
-            slot = '<a href="%(link)s" class="elnk">%(time)s:</a>'
-            #slot = '<a href="{{link}}">{{time|upper}}:</a>'
-        else:
-            #slot = '%(time)s: <a href="%(link)s">%(name)s</a>'
-            slot = '<a href="%(link)s" class="elnk">%(time)s:</a> %(name)s'
-            #slot = '{{time|upper}}: <a href="{{link}}">{{name}}</a>'
+        # # Do authentication / deciding if we should link here.
+        # if not can_edit:
+        #     slot = '%(time)s: %(name)s'
+        #     #slot = '{{time|upper}}: {{name}}'
+        # elif not name.strip():
+        #     # rel="shadowbox"
+        #     slot = '<a href="%(link)s" class="elnk">%(time)s:</a>'
+        #     #slot = '<a href="{{link}}">{{time|upper}}:</a>'
+        # else:
+        #     #slot = '%(time)s: <a href="%(link)s">%(name)s</a>'
+        #     slot = '<a href="%(link)s" class="elnk">%(time)s:</a> %(name)s'
+        #     #slot = '{{time|upper}}: <a href="{{link}}">{{name}}</a>'
+
+        slot = '<a href="%(link)s" class="elnk">%(time)s:</a> %(name)s'
+
 
         # Tool tip for all shifts
         if tooltips:
@@ -203,7 +207,7 @@ def shift(request, shift_id, rank_id):
     t = django.template.loader.get_template("cava/shift.html")
     body = t.render(RequestContext(request, locals()))
     return HttpResponse(body)
-
+shift_info = shift
 
 
 #@permission_required('cal.can_view_calendar')

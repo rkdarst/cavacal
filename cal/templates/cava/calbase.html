@@ -13,6 +13,16 @@
 <div class="toppanel">
 <div class="leftbox">
 <font size="+2">Columbia University EMS</font> - <a href="http://www.cuems.org">Home</a> - <a href="{% url cal.views.redirect_to_now %}">Calendar</a> <font size="1">(<a href="{% url cal.views.mobile%}">Mobile</a>)</font>
+<center><font size="-1">
+  <a href="{% url cal.views.search %}">Search</a> -
+  <a href="{% url cal.views.log %}">Log</a> -
+  <a href="{% url cal.export.ical %}">Export</a> -
+  <a href="{% url cal.views.highlight %}">Highlight</a> -
+  <a href="{% url cal.views.time_person %}">Time log</a>
+  (<a href="{% url cal.views.time_histogram %}">H</a>,
+   <a href="{% url cal.views.time_count %}">C</a>) -
+  <a href="{% url cal-about %}">About</a>
+</font></center>
 </div>
 <div class="authbox">
 {% if user.is_authenticated %}

@@ -15,7 +15,7 @@ import cal.models as models
 class NavBarMiddleware(object):
     def process_view(self, request, view, args, kwargs):
         request.month_bar = self.month_bar(request, view, kwargs)
-        request.rank_bar  = self.rank_bar(request, view, kwargs)
+        request.rank_bar  = self.rank_bar(request, view, kwargs, extra_links=0)
         request.edit_bar  = self.edit_bar(request, view, kwargs)
         if request.user.has_perm('cal.can_edit_calendar') \
            or view == views.month_edit:
