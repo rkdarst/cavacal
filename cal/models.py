@@ -113,14 +113,18 @@ class Schedule(object):
                                        shift_id__lte=high)
             for slot in slots:
                 self.cache[slot.shift_id, slot.rank_id] = slot
+            self.cache_low = low
+            self.cache_high = high
         else:
             self.cache = None
     def __getitem__(self, key):
         shift, rank = key
         shift_id = int(shift)
-        if self.cache and (shift_id, rank.rank_id) in self.cache:
-            return self.cache[shift_id, rank.rank_id].name
-
+        if self.cache:
+            if (shift_id, rank.rank_id) in self.cache:
+                return self.cache[shift_id, rank.rank_id].name
+            if self.cache_low <= shift_id <= self.cache_high:
+                return ''
         slot = Slot.objects.filter(shift_id=shift_id, rank=rank)
         if len(slot) == 0:  return ''
         else:               return slot[0].name
