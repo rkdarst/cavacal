@@ -112,8 +112,8 @@ def setslot(request, shift_id, rank_id):
                 #        next += '#%02d'%shift_id.date.day
                 #else:
                 #    next += '#'+next
-                if 'rank_id' not in next:
-                    return redirect_to_now(request, today=Shift(shift_id).date)
+                #if 'rank_id' not in next:
+                #    return redirect_to_now(request, today=Shift(shift_id).date)
                 return HttpResponseRedirect(next)
 
             return redirect_to_now(request, today=Shift(shift_id).date)
