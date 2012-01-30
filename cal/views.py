@@ -61,7 +61,7 @@ ifmodified_decorator = django.views.decorators.http.condition(
 #ifmodified_decorator = lambda x: x
 
 
-def redirect_to_now(request, today=None, rank_id=None):
+def redirect_to_now_month(request, today=None, rank_id=None):
     if today is None:
         today = datetime.date.today()
     if today.day > 4:
@@ -82,6 +82,20 @@ def redirect_to_now(request, today=None, rank_id=None):
     kwargs = dict(year=today.year, month="%02d"%today.month)
     return HttpResponseRedirect(
         reverse(month, kwargs=kwargs)+query+bookmark)
+
+def redirect_to_now_future(request, today=None, rank_id=None):
+    querylist = [ ]
+    if rank_id is not None:
+        querylist.append('rank_id=%d'%rank_id)
+    q = request.META.get('QUERY_STRING')
+    if q:
+        querylist.append(q)
+    if len(querylist) > 0:
+        query = '?'+"&".join(querylist)
+    else:
+        query = ""
+    return HttpResponseRedirect(reverse('cal-month-future')+query)
+redirect_to_now = redirect_to_now_future
 
 class SetSlotForm(forms.Form):
     name = forms.CharField(max_length=256, required=False)

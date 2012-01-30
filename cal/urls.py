@@ -1,8 +1,9 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
-    (r'^$', 'cal.views.redirect_to_now'),
-   (r'^now/$','cal.views.month',dict(year=None,month=None),'cal-month-future'),
+    #(r'^$', 'cal.views.redirect_to_now'),
+    (r'^$','cal.views.month',dict(year=None,month=None),'cal-month-future'),
+    (r'^now/$','cal.views.month',dict(year=None,month=None)),
     (r'^(?P<year>\d{4})/(?P<month>\d{1,2})/', 'cal.views.month'),
     (r'^set/(?P<shift_id>\d+)/(?P<rank_id>\d+)/', 'cal.views.setslot'),
     (r'^shift/(?P<shift_id>\d+)/(?P<rank_id>\d+)/', 'cal.views.shift'),
@@ -27,6 +28,7 @@ urlpatterns = patterns('',
     (r'^ical/(?P<name>[^/]+)/$',            'cal.export.ical_search'),
     (r'^ical/person/(?P<name>[^/]+)/$',     'cal.export.ical_search'),
     (r'^ical/rank/(?P<rank_id>[^/]+)/$',    'cal.export.ical_rank'),
+
 )
 
 # This is imported by the urls_mobile module, since django can't
