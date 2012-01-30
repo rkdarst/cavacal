@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
     (r'^$', 'cal.views.redirect_to_now'),
+   (r'^now/$','cal.views.month',dict(year=None,month=None),'cal-month-future'),
     (r'^(?P<year>\d{4})/(?P<month>\d{1,2})/', 'cal.views.month'),
     (r'^set/(?P<shift_id>\d+)/(?P<rank_id>\d+)/', 'cal.views.setslot'),
     (r'^shift/(?P<shift_id>\d+)/(?P<rank_id>\d+)/', 'cal.views.shift'),

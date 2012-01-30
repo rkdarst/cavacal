@@ -13,9 +13,11 @@
     <td>Sunday</td>
   </tr>
   {% for row in table %}
+  {% if row.contents %}
+  <tr>{{ row.contents|safe }}</tr>{% else %}
   <tr>{% for day in row %}
     {{ day|safe }}{% endfor %}
-  </tr>
+  </tr>{% endif %}
 {% endfor %}
 </table>
 </center>

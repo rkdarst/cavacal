@@ -213,21 +213,38 @@ shift_info = shift
 #@permission_required('cal.can_view_calendar')
 #@ifmodified_decorator
 def month(request, year, month):
-    year = int(year)
-    month = int(month)
-    date = datetime.date(year, month, 1)
+    if year is not None and month is not None:
+        year = int(year)
+        month = int(month)
+        date = datetime.date(year, month, 1)
+        stopDate = cava.util.increment_month(date)
+        stopDate += datetime.timedelta(days=5)
+        if 'rank_id' in request.REQUEST:
+            stopDate += datetime.timedelta(days=2)
+        # Create a cache
+        first_shift_id = Shift(date=date,time='am').shift_id
+        schedule = Schedule(cache=(first_shift_id, first_shift_id+2*31+10))
+        title = date.strftime('CAVA: %Y %B')
+    else:
+        date = datetime.date.today() - datetime.timedelta(days=3)
+        end_slot = Slot.objects.order_by('-shift_id')[0]
+        stopDate = end_slot.shift().date
+        # Create a cache
+        first_shift_id = Shift(date=date,time='am').shift_id
+        schedule = Schedule(cache=(first_shift_id, end_slot.shift_id))
+        title = 'CAVA: Future'
     calendardate = date
     ranktitle = ""
     rows = [ ]
     today = datetime.date.today()
+    # We don't want to import this here, but due to recursive imports,
+    # middleware doesn't load before views loads, causing problems,
+    # and this is the easiest way around it
+    import middleware
 
     can_edit = False
     if request.user.has_perm("cal.can_edit_calendar"):
         can_edit = True
-
-    # Create a cache
-    first_shift_id = Shift(date=date,time='am').shift_id
-    schedule = Schedule(cache=(first_shift_id, first_shift_id+31+10))
 
     highlight = None
     if 'highlight' in request.REQUEST:
@@ -244,12 +261,25 @@ def month(request, year, month):
         date -= datetime.timedelta(days=date.weekday())
 
         rank_id = int(request.REQUEST['rank_id'])
-        rank = Rank.objects.filter(rank_id=rank_id)[0]
-        ranktitle = rank.rank
+        rank = Rank.objects.get(rank_id=rank_id)
+        title += ', %s'%rank.rank
 
-        for i in range(8): # max number of weeks to possibly do
+        for nweek in range(20): # max number of weeks to possibly do
             week_row = [ ]
-            for i in range(7):
+            for nweekday in range(7):
+                next_month = cava.util.increment_month(date, 1)
+                if month is None and nweekday == 0 and \
+                       (next_month-date) < datetime.timedelta(7):
+                    month_bar = middleware.NavBarMiddleware.month_bar.im_func(
+                        None, request, view_month,
+                        kwargs=dict(month=next_month.month,
+                                    year=next_month.year))
+                    contents = ('<td colspan="%s"><center>'
+                                '%s'
+                                '</center></td>')%(
+                        7, month_bar)
+                    table.append(dict(contents=contents))
+
                 datestr = date.strftime("<center>%d</center>")
                 if date.month == month:
                     datestr = '<b>%s</b>'%datestr
@@ -257,7 +287,7 @@ def month(request, year, month):
                 classes = [ ]
                 if date == today:
                     classes.append("today")
-                if date.month != month:
+                if month is not None and date.month != month:
                     classes.append("notthismonth")
                 elif date.weekday() in (5,6):
                     classes.append("weekend")
@@ -275,16 +305,13 @@ def month(request, year, month):
                 week_row.append(cell)
                 date += datetime.timedelta(days=1)
             table.append(week_row)
-            if date.month != month and date.day > 7:
+            # Break condition for doing a single month:
+            if date > stopDate:
                 break
 
         template = django.template.loader.get_template("cava/calendar_month.html")
 
     else:
-        # Set stop date before we set the starting date.
-        stopDate = cava.util.increment_month(date)
-        stopDate += datetime.timedelta(days=5)
-
         # If we are within 3 days of next month, show it anyway:
         if 0 < (date - today).days < 5:
             date = today
@@ -295,7 +322,20 @@ def month(request, year, month):
         #table_header = ' '.join(table_header)
 
         table = [ ]
-        while date < stopDate:
+        while True:
+            if date >= stopDate:
+                break
+
+            if month is None and date.day == 1:
+                month_bar = middleware.NavBarMiddleware.month_bar.im_func(
+                    None, request, view_month,
+                    kwargs=dict(month=date.month, year=date.year))
+                contents = ('<td colspan="%s"><center>'
+                            '%s'
+                            '</center></td>')%(
+                    len(ranks)+1, month_bar)
+                table.append(dict(contents=contents))
+
             row = {'row':[ ]}
             row['day'] = "%02d"%date.day
             row['month'] = date.strftime("%b")
@@ -308,7 +348,7 @@ def month(request, year, month):
                 classes = [ ]
                 if date == today:
                     classes.append("today")
-                if date.month != month:
+                if month is not None and date.month != month:
                     classes.append("notthismonth")
                 elif date.weekday() in (5,6):
                     classes.append("weekend")
@@ -332,6 +372,7 @@ def month(request, year, month):
 
     body = template.render(RequestContext(request, locals()))
     return HttpResponse(body)
+view_month = month
 
 def month_timing(*args, **kwargs):
     for i in range(1000):

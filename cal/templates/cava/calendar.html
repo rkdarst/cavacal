@@ -1,6 +1,6 @@
 {% extends "cava/calbase.html" %}
 
-{% block title %}CAVA: {{ calendardate|date:"Y F" }} {{ranktitle}}{% endblock %}
+{% block title %}{{title}}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" type="text/css" href="/static/shadowbox/shadowbox.css">
@@ -32,12 +32,13 @@ Shadowbox.init({
     <td>Date</td>{% for cell in table_header %}
     {{ cell|safe }}{% endfor %}
   </tr>{% for row in table %}
-  {% if row.empty %}
+  {% if row.contents %}
+  <tr>{{row.contents|safe}}<tr>{% else %}{% if row.empty %}
   <tr cellpadding=5><td></td></tr>{% else %}
   <tr>
   <td class="sidebar{{row.moreclasses}}"><a name="{{row.day}}">{{row.month}} {{row.day}} ({{row.weekday}})</a></td>{% for cell in row.row %}
     {{ cell|safe }}{% endfor%}
-  </tr>{% endif %}
+  </tr>{% endif %}{% endif %}
 {% if row.today and request.motd %}
 <tr><td colspan="10"><center>{{request.motd}}</center></td></tr>
 {% endif %}

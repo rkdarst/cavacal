@@ -54,10 +54,10 @@ class NavBarMiddleware(object):
         Accessible from request.month_bar."""
         year = month = None
         date = datetime.date.today().replace(day=1)
-        if 'month' in kwargs:
+        if kwargs.get('month', None) is not None:
             month = int(kwargs['month'])
             date  = date.replace(month=month)
-        if 'year' in kwargs:
+        if kwargs.get('year', None) is not None:
             year = int(kwargs['year'])
             date = date.replace(year=year)
         bar = [ ]
@@ -93,10 +93,10 @@ class NavBarMiddleware(object):
 
         year = month = None
         date = datetime.date.today().replace(day=1)
-        if 'month' in kwargs:
+        if kwargs.get('month', None) is not None:
             month = int(kwargs['month'])
             date  = date.replace(month=month)
-        if 'year' in kwargs:
+        if kwargs.get('year', None) is not None:
             year = int(kwargs['year'])
             date = date.replace(year=year)
 
@@ -107,7 +107,11 @@ class NavBarMiddleware(object):
         else:
             current_rank = None
 
-        url = reverse(to_view, kwargs={'year':date.year, 'month':'%02d'%date.month})
+        if kwargs.get('month', None) is None:
+            url = reverse('cal-month-future')
+        else:
+            url = reverse(to_view, kwargs={'year':date.year,
+                                           'month':'%02d'%date.month})
 
 
         if current_rank == -1 and view == to_view:
