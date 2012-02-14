@@ -9,10 +9,21 @@
 
 <a href="{% url cal.views.redirect_to_now %}">Return to main</a><p>
 
-{% if can_edit %}<a href="{% url cal.views.setslot shift_id=shift_id, rank_id=rank_id %}">Edit this shift</a>{% endif %}<p>
+{% if can_edit %}
+<h2>Edit this shift</h2>
+<a href="{% url cal.views.setslot shift_id=shift_id, rank_id=rank_id %}">Edit this shift</a>
+<form action="." method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Submit"><p>
+
+{% endif %}
 
 <h2>Current shift contents</h2>
 
+{% if not slot %}
+<p>No data for this slot</p>
+{% else %}
 <p>{{ slot.shift.text }}</p>
 
 <p>{{slot.shift.start}} -- {{slot.shift.end}}</p>
@@ -62,6 +73,6 @@
 </tr>
 {% endfor %}
 </table>
-
+{% endif %} {#not slot#}
 
 {% endblock body %}

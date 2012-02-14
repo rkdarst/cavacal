@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import Context, RequestContext, Template
 import django.template
 import django.core.mail as dj_mail
+#from django.core.exceptions import DoesNotExist
 from django.core.urlresolvers import reverse, resolve
 from django.shortcuts import redirect
 from django import forms
@@ -154,11 +155,7 @@ def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
             name = escape(name)
             name = highlight_names(name, highlight=highlight)
 
-        if can_edit:
-            link = reverse(setslot,
-                       kwargs=dict(shift_id=int(shift), rank_id=rank.rank_id))
-        else:
-            link = reverse(shift_info,
+        link = reverse(shift_info,
                        kwargs=dict(shift_id=int(shift), rank_id=rank.rank_id))
 
         #if shift.date < datetime.date.today():
@@ -202,18 +199,36 @@ def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
 def shift(request, shift_id, rank_id):
     REQUEST = request.REQUEST
 
-    can_edit = False
-    if request.user.has_perm('cal.can_edit_calendar'):
-        can_edit = True
-
-
     shift_id = int(shift_id)
     shift = Shift(shift_id)
     rank_id  = int(rank_id)
     rank = Rank.objects.get(rank_id=rank_id)
-    slot = Slot.objects.get(shift_id=shift_id, rank=rank)
+    try:
+        slot = Slot.objects.get(shift_id=shift_id, rank=rank)
+        parsed_shift = cava.util.parseslot(shift, slot.name)
+    except Slot.DoesNotExist:
+        slot = None
 
-    parsed_shift = cava.util.parseslot(shift, slot.name)
+    # Edit-related things
+    can_edit = False
+    if request.user.has_perm('cal.can_edit_calendar'):
+        can_edit = True
+        if request.method == 'POST':
+            form = SetSlotForm(request.POST)
+            if form.is_valid():
+                schedule.setslot((shift_id, rank_id),
+                                 form.cleaned_data['name'],
+                                 user=request.user
+                                 )
+                if form.cleaned_data['next']:
+                    next = form.cleaned_data['next']
+                    return HttpResponseRedirect(next)
+
+                return redirect_to_now(request, today=Shift(shift_id).date)
+        else:
+            form = SetSlotForm(initial={'name':schedule[shift_id, rank_id],
+                                   'next': request.META.get('HTTP_REFERER')})
+
 
     log = LogSlot.objects.filter(
         shift_id=shift_id, rank=rank_id).order_by('mtime').reverse()
