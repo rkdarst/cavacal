@@ -915,9 +915,9 @@ def time_count(request):
     form.is_valid()
 
     personqueryargs = request.GET.copy()
-    for key in personqueryargs:
+    for key in request.GET:
         if key not in ('regex', 'rank', 'firstdate', 'lastdate'):
-            del personqueryargs['key']
+            del personqueryargs[key]
 
     matches = get_time_slots(**form.cleaned_data)
 
