@@ -245,7 +245,12 @@ def _matchtime(string):
     m = time_re.match(string)
     if not m:
         return None
-    return datetime.time(int(m.group(1)), int(m.group(2)))
+    hour = int(m.group(1))
+    minute = int(m.group(2))
+    if hour >= 24:
+        hour -= 24
+    time = datetime.time(hour, minute)
+    return time
 def _getsecs(t):
     return t.hour*3600 + t.minute*60 + t.second + t.microsecond/1e6
 def _getrealtime(start, t, backwards=False):
