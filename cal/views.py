@@ -352,7 +352,7 @@ def month(request, year, month):
 
         table = [ ]
         while True:
-            if date >= stopDate:
+            if date > stopDate:
                 break
 
             if month is None and date.day == 1:
