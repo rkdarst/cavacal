@@ -68,10 +68,24 @@ class Shift(object):
         AMstart        = {'hour': 8, 'minute':30}
         AMstartweekend = {'hour':10, 'minute':00}
         PMstart        = {'hour':20, 'minute':30}
-        if datetime.date(2011,5,22) < date < datetime.date(2011,8,29):
+        #if datetime.date(2011,5,22) < date < datetime.date(2011,8,29):
+        #    AMstart = {'hour': 7, 'minute': 00}
+        #    PMstart = {'hour':19, 'minute': 00}
+        # Handle the summer shift changes:
+        if not 5 <= date.month <= 8:
+            # Not summer time, do nothing in this if branch.
+            pass
+        elif date.year >= 2012 \
+             and not (    ( date.month==5 and date.day<23 )
+                       or ( date.month==8 and date.day>25 ) ):
+                 AMstart = {'hour': 7, 'minute': 00}
+                 PMstart = {'hour':19, 'minute': 00}
+        elif date.year == 2011 \
+              and datetime.date(2011,5,22) < date < datetime.date(2011,8,29):
             AMstart = {'hour': 7, 'minute': 00}
             PMstart = {'hour':19, 'minute': 00}
 
+        # Weekend AM start times.
         if self.time == 'am':
             if date.weekday() in (5,6):
                 return time.replace(**AMstartweekend)
