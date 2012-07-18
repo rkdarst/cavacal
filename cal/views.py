@@ -30,7 +30,7 @@ from cava.util import Shift
 
 def coverage_re_replace(match):
     return '<span class="coverage">%s</span>'%match.group(0)
-coverage_re = re.compile('\?+|coverage|help',re.I)
+coverage_re = re.compile('\?+|coverage|help|[\w ]+\*',re.I)
 time_re = re.compile('(([0-9:])|((?<!<)/))+')
 #hide_re = re.compile(r'\b(richard|harstrick)\b', re.I)
 def highlight_names(name, highlight=None, view=None):
@@ -937,6 +937,7 @@ def time_count(request):
     count = collections.defaultdict(lambda: [datetime.timedelta(),
                                              datetime.timedelta()])
     cumulative = datetime.timedelta()
+    ignoreCharRe = re.compile(r'[*?]+')
     for slot in matches:
         intervals = cava.util.parseslot(slot.shift(), slot.name)
         for name, start, end in intervals:
@@ -944,6 +945,7 @@ def time_count(request):
                 #    continue
                 dt = end-start
                 name = name.lower()
+                name = ignoreCharRe.sub('', name)
                 count[name][0] += dt
                 if slot.shift().is_weekend():
                     count[name][1] += dt
