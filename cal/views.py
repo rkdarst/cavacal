@@ -255,9 +255,21 @@ def month(request, year, month):
         schedule = Schedule(cache=(first_shift_id, first_shift_id+2*31+10))
         title = date.strftime('CAVA: %Y %B')
     else:
-        date = datetime.date.today() - datetime.timedelta(days=3)
-        end_slot = Slot.objects.order_by('-shift_id')[0]
-        stopDate = end_slot.shift().date
+        if 'start' in request.REQUEST:
+            date = datetime.datetime.strptime(request.REQUEST['start'],
+                                              '%Y-%m-%d').date()
+        else:
+            date = datetime.date.today() - datetime.timedelta(days=3)
+        if 'end' in request.REQUEST:
+            stopDate = datetime.datetime.strptime(request.REQUEST['end'],
+                                                  '%Y-%m-%d').date()
+            _stopDate = datetime.datetime(stopDate.year,
+                                      stopDate.month,
+                                      stopDate.day)
+            end_slot = cava.util.get_current_shift(now=_stopDate)
+        else:
+            end_slot = Slot.objects.order_by('-shift_id')[0]
+            stopDate = end_slot.shift().date
         # Create a cache
         first_shift_id = Shift(date=date,time='am').shift_id
         schedule = Schedule(cache=(first_shift_id, end_slot.shift_id))

@@ -12,6 +12,10 @@ from cava import bquotes
 import cavapeople.views
 import cal.models as models
 
+def makeQueryStr(queries):
+    if not queries: return ''
+    return '?' + '&'.join(queries)
+
 class NavBarMiddleware(object):
     def process_view(self, request, view, args, kwargs):
         request.month_bar = self.month_bar(request, view, kwargs)
@@ -66,10 +70,12 @@ class NavBarMiddleware(object):
         if view not in calendar_views:
             view = views.month
 
-        if 'rank_id' in request.REQUEST:
-            query_string = '?rank_id=%s'%request.REQUEST['rank_id']
-        else:
-            query_string = ''
+        queries = [ ]
+        for name in ('rank_id', ):
+            if name in request.REQUEST:
+                queries.append('%s=%s'%(name, request.REQUEST[name]))
+        query_string = makeQueryStr(queries)
+
         for i in range(-3, 4):
             newdate = cava.util.increment_month(date, i)
             url = reverse(view, kwargs={'year':newdate.year, 'month':'%02d'%newdate.month})+query_string
@@ -100,6 +106,11 @@ class NavBarMiddleware(object):
             year = int(kwargs['year'])
             date = date.replace(year=year)
 
+        queries = [ ]
+        for name in ('start', 'end'):
+            if name in request.REQUEST:
+                queries.append('%s=%s'%(name, request.REQUEST[name]))
+
         if 'rank_id' in request.REQUEST:
             current_rank = int(request.REQUEST['rank_id'])
         elif to_view == views.month or to_view == views.month_edit:
@@ -117,14 +128,16 @@ class NavBarMiddleware(object):
         if current_rank == -1 and view == to_view:
             bar.append('<b>All ranks</b>')
         else:
-            bar.append('<a href="%s">All ranks</a>'%url)
+            _url = url + makeQueryStr(queries)
+            bar.append('<a href="%s">All ranks</a>'%(_url))
 
         for rank in views.ranks:
+            _url = url + makeQueryStr(queries)
             if current_rank == rank.rank_id and view==to_view:
                 bar.append('<b>%s</b>'%rank.rank)
             else:
-                bar.append('<a href="%s?rank_id=%d">%s</a>'%(
-                    url, rank.rank_id, rank.rank))
+                _url = url + makeQueryStr(queries+["rank_id=%d"%rank.rank_id])
+                bar.append('<a href="%s">%s</a>'%(_url, rank.rank))
 
         if extra_links:
             search_link = reverse(views.search)
