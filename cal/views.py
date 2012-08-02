@@ -143,7 +143,7 @@ def setslot(request, shift_id, rank_id):
 
 
 def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
-             tooltips=False):
+             tooltips=False, limit=None):
     cell = [ ]
     for time in 'am', 'pm':
         shift = cava.util.Shift(date=date, time=time)
@@ -151,6 +151,9 @@ def day_cell(date, rank, can_edit=False, schedule=schedule, highlight=None,
 
         # Needs to be fixed for the case that a slot doesn't exist already.
         name = schedule[shift.shift_id, rank]
+        if limit:
+            if not limit.search(name):
+                name = ''
         if name:
             name = escape(name)
             name = highlight_names(name, highlight=highlight)
@@ -287,6 +290,9 @@ def month(request, year, month):
     if request.user.has_perm("cal.can_edit_calendar"):
         can_edit = True
 
+    # Open question: I am not re.escape'ing things here to allow RE
+    # features to be used.  How bad of security problems does this
+    # make?
     highlight = None
     if 'highlight' in request.REQUEST:
         highlight = request.REQUEST.get('highlight')
@@ -294,6 +300,13 @@ def month(request, year, month):
         highlight = request.COOKIES['highlight-name']
     if highlight:
         highlight = re.compile(highlight, re.I)
+    tooltips = False
+    limit = None
+    if 'limit' in request.REQUEST:
+        limit = re.compile(request.REQUEST['limit'], re.I)
+        tooltips = True
+        if not highlight:
+            highlight = re.compile(request.REQUEST['limit'], re.I)
 
     if request.REQUEST.get('rank_id', None):
         # Calendar view for one rank
@@ -340,7 +353,8 @@ def month(request, year, month):
                 cell  = day_cell(date, rank, can_edit=can_edit,
                                  schedule=schedule,
                                  highlight=highlight,
-                                 tooltips=True)
+                                 tooltips=True,
+                                 limit=limit)
                 cell = '%s%s'%(datestr, cell)
                 cell = '<td%s>%s</td>'%(style, cell)
                 week_row.append(cell)
@@ -400,7 +414,9 @@ def month(request, year, month):
 
                 cell = day_cell(date, rank, can_edit=can_edit,
                                 schedule=schedule,
-                                highlight=highlight)
+                                highlight=highlight,
+                                limit=limit,
+                                tooltips=tooltips)
                 cell = '<td%s>%s</td>'%(style, cell)
                 row['row'].append(cell)
             table.append(row)
