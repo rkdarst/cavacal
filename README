@@ -1,0 +1,5 @@
+required packages:
+
+python-mechanize (scraping)
+python-django-auth-openid
+python-vobject (ical export)
